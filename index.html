@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boulangerie Pro - Expert Rentabilité</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --blue: #2980b9; --light: #f4f7f6; --gold: #f1c40f; }
+        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; margin: 0; padding: 20px; font-size: 14px; color: var(--secondary); }
+        
+        /* Interface */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--secondary); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; color: white; }
+        #login-overlay input { padding: 12px; font-size: 1.2em; border-radius: 5px; border: none; text-align: center; margin-top: 15px; }
+        .container { max-width: 1250px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: none; }
+        h1, h2 { color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; }
+        section { margin-bottom: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fff; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: var(--light); }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .result-box { background: #fdfefe; padding: 20px; border-left: 6px solid var(--success); border-radius: 4px; }
+        .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .method-box { background: white; padding: 15px; border-radius: 8px; border: 2px solid #eee; transition: 0.3s; position: relative; }
+        .method-box.best { border-color: var(--gold); background: #fffdf2; transform: scale(1.02); }
+        .best-badge { position: absolute; top: -10px; right: -10px; background: var(--gold); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; display: none; }
+        .method-box.best .best-badge { display: block; }
+        .btn { padding: 10px 18px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.2s; }
+        .btn-save { background: var(--blue); }
+        .btn-pdf { background: #8e44ad; }
+        .btn-add { background: var(--success); margin-bottom: 10px; }
+        input, select { width: 92%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px; }
+        input[readonly] { background-color: #f0f0f0; }
+        .chart-container { height: 180px; }
+
+        /* OPTIMISATION PDF / IMPRESSION */
+        @media print {
+            body { background: white; padding: 0; }
+            #login-overlay, .btn, .chart-container, #table-mp, section:first-of-type, th:last-child, td:last-child { display: none !important; }
+            .container { box-shadow: none; width: 100%; display: block !important; }
+            .grid-layout { display: block; }
+            section { border: none; border-bottom: 1px solid #ccc; page-break-inside: avoid; }
+            .method-box { border: 1px solid #ddd !important; break-inside: avoid; }
+            .best-badge { border: 1px solid black; }
+        }
+
+        @media (max-width: 900px) { .grid-layout, .compare-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <h2>Pilotage Fournil - Accès</h2>
+        <input type="password" id="access-code" placeholder="Code secret" oninput="checkCode()">
+    </div>
+
+    <div class="container" id="main-app">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Fiche Technique & Rentabilité</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-pdf" onclick="window.print()">📄 Export PDF (Fiche)</button>
+                <button class="btn btn-save" onclick="saveData()">💾 Sauvegarder</button>
+            </div>
+        </div>
+
+        <section id="section-matières">
+            <h2>Matières Premières</h2>
+            <table id="table-mp">
+                <thead><tr><th>Activité</th><th>Fournisseur</th><th>Matière</th><th>Prix HT (€/kg)</th><th>Evol.</th><th>Action</th></tr></thead>
+                <tbody id="body-mp"></tbody>
+            </table>
+            <button class="btn btn-add" onclick="addRowMP()">+ Ajouter</button>
+            <div class="chart-container"><canvas id="priceChart"></canvas></div>
+        </section>
+
+        <div class="grid-layout">
+            <section id="pdf-recette">
+                <h2>Recette : <span id="pdf-nom-titre">...</span></h2>
+                <div style="margin-bottom: 15px;">
+                    <label>Nom : </label><input type="text" id="recette-nom" oninput="document.getElementById('pdf-nom-titre').innerText=this.value" placeholder="Ex: Baguette Trad.">
+                    <br><br>
+                    <label>Poids total pâte : </label>
+                    <input type="number" id="recette-poids-total" value="0" readonly style="width: 80px;"> <strong>g</strong>
+                </div>
+                <table id="table-recette">
+                    <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Coût HT</th><th>Action</th></tr></thead>
+                    <tbody id="body-recette"></tbody>
+                </table>
+                <button class="btn btn-add" onclick="addRowRecette()">+ Ingrédient</button>
+            </section>
+
+            <section id="pdf-calculs">
+                <h2>Simulation & Prix de Vente</h2>
+                <div class="result-box">
+                    <div style="display:flex; justify-content: space-between;">
+                        <span>Coût Recette : <strong id="res-recette-total">0.00</strong> €</span>
+                        <span>Coût au kg : <strong id="res-recette-kg">0.00</strong> €</span>
+                    </div>
+                    <hr>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label>Poids Pâton (g) :</label>
+                            <input type="number" id="poids-piece" value="250" oninput="calculerTout()">
+                        </div>
+                        <div>
+                            <label>TVA (%) :</label>
+                            <select id="taux-tva" onchange="calculerTout()">
+                                <option value="5.5" selected>5.5% (Pain)</option>
+                                <option value="10">10% (Snack)</option>
+                                <option value="20">20% (Traiteur)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 10px;">
+                        <label>Démarque / Pertes (%) :</label>
+                        <input type="number" id="taux-perte" value="5" oninput="calculerTout()">
+                    </div>
+
+                    <p style="margin-top:15px;">Coût matière réel / pièce : <strong id="cout-unitaire" style="color:var(--danger)">0.00</strong> € HT</p>
+                    
+                    <div class="compare-grid">
+                        <div class="method-box" id="box-marge">
+                            <div class="best-badge">OPTIMAL</div>
+                            <label><strong>Taux de Marge</strong> (%)</label>
+                            <input type="number" id="taux-marge" value="70" oninput="calculerTout()">
+                            <h3 style="color:var(--success); margin-bottom:0;"><span id="pv-ht-marge">0.00</span> € HT</h3>
+                            <small>Soit <strong><span id="pv-ttc-marge">0.00</span> € TTC</strong></small>
+                        </div>
+                        <div class="method-box" id="box-coeff">
+                            <div class="best-badge">OPTIMAL</div>
+                            <label><strong>Coefficient</strong></label>
+                            <input type="number" id="coeff-mult" value="4.5" step="0.1" oninput="calculerTout()">
+                            <h3 style="color:var(--blue); margin-bottom:0;"><span id="pv-ht-coeff">0.00</span> € HT</h3>
+                            <small>Soit <strong><span id="pv-ttc-coeff">0.00</span> € TTC</strong></small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+<script>
+    const CODE_VALIDE = "1234";
+    let myChart;
+
+    function checkCode() {
+        if(document.getElementById('access-code').value === CODE_VALIDE) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            loadData(); initChart(); refreshAnalyse();
+        }
+    }
+
+    function addRowMP(data = {}) {
+        const tbody = document.getElementById('body-mp');
+        const row = tbody.insertRow();
+        const n1 = data.n1 || data.ht || 0;
+        row.innerHTML = `
+            <td><select><option ${data.act=='Boulangerie'?'selected':''}>Boulangerie</option><option ${data.act=='Pâtisserie'?'selected':''}>Pâtisserie</option></select></td>
+            <td><input type="text" class="mp-fourn" value="${data.fournisseur || ''}"></td>
+            <td><input type="text" class="mp-nom" value="${data.nom || ''}" onchange="updateDropdowns()"></td>
+            <td><input type="number" class="mp-ht" step="0.001" value="${data.ht || ''}" oninput="refreshAnalyse()"></td>
+            <td class="mp-evol">-</td><input type="hidden" class="mp-n1" value="${n1}">
+            <td><button onclick="this.parentElement.parentElement.remove(); refreshAnalyse(); updateDropdowns()">❌</button></td>`;
+        updateDropdowns();
+    }
+
+    function refreshAnalyse() {
+        const labels = []; const current = []; const old = [];
+        document.querySelectorAll('#body-mp tr').forEach(tr => {
+            const nom = tr.querySelector('.mp-nom').value;
+            const ht = parseFloat(tr.querySelector('.mp-ht').value) || 0;
+            const n1 = parseFloat(tr.querySelector('.mp-n1').value) || ht;
+            const evol = tr.querySelector('.mp-evol');
+            if (n1 > 0 && ht !== n1) {
+                const pct = ((ht - n1) / n1 * 100).toFixed(1);
+                evol.innerHTML = `<span class="badge ${pct > 0 ? 'badge-danger' : 'badge-success'}">${pct > 0 ? '+' : ''}${pct}%</span>`;
+            } else { evol.innerHTML = `<span class="badge" style="background:#bdc3c7">0%</span>`; }
+            if(nom) { labels.push(nom); current.push(ht); old.push(n1); }
+        });
+        if(myChart) { myChart.data.labels = labels; myChart.data.datasets[0].data = current; myChart.data.datasets[1].data = old; myChart.update(); }
+        calculerTout();
+    }
+
+    function addRowRecette(data = {}) {
+        const row = document.getElementById('body-recette').insertRow();
+        row.innerHTML = `
+            <td><select class="rec-select" onchange="calculerTout()">${getMPOptions(data.nomIdx)}</select></td>
+            <td><input type="number" class="rec-qte" value="${data.qte || ''}" oninput="calculerTout()"></td>
+            <td class="rec-cout-ligne">0.00</td>
+            <td><button onclick="this.parentElement.parentElement.remove(); calculerTout()">❌</button></td>`;
+    }
+
+    function getMPOptions(sel) {
+        let h = '<option value="">--Choisir--</option>';
+        document.querySelectorAll('.mp-nom').forEach((mp, i) => { h += `<option value="${i}" ${sel == i ? 'selected' : ''}>${mp.value}</option>`; });
+        return h;
+    }
+
+    function updateDropdowns() {
+        document.querySelectorAll('.rec-select').forEach(s => { const v = s.value; s.innerHTML = getMPOptions(v); });
+    }
+
+    function calculerTout() {
+        let totalHT = 0; let pTotal = 0;
+        const mpHts = document.querySelectorAll('.mp-ht');
+        document.querySelectorAll('#body-recette tr').forEach(tr => {
+            const idx = tr.querySelector('.rec-select').value;
+            const q = parseFloat(tr.querySelector('.rec-qte').value) || 0;
+            pTotal += q;
+            if(idx !== "") {
+                const cout = (q / 1000) * (parseFloat(mpHts[idx].value) || 0);
+                tr.querySelector('.rec-cout-ligne').innerText = cout.toFixed(2);
+                totalHT += cout;
+            }
+        });
+
+        document.getElementById('recette-poids-total').value = pTotal;
+        const coutKg = pTotal > 0 ? totalHT / (pTotal / 1000) : 0;
+        const pPiece = parseFloat(document.getElementById('poids-piece').value) || 0;
+        const tva = 1 + (parseFloat(document.getElementById('taux-tva').value) / 100);
+        const coutBase = (pPiece / 1000) * coutKg;
+        const coutReel = coutBase / ((100 - (parseFloat(document.getElementById('taux-perte').value) || 0)) / 100);
+
+        const pvHTM = (parseFloat(document.getElementById('taux-marge').value) < 100) ? (coutReel / ((100 - parseFloat(document.getElementById('taux-marge').value)) / 100)) : 0;
+        const pvHTC = coutReel * (parseFloat(document.getElementById('coeff-mult').value) || 0);
+
+        document.getElementById('res-recette-total').innerText = totalHT.toFixed(2);
+        document.getElementById('res-recette-kg').innerText = coutKg.toFixed(2);
+        document.getElementById('cout-unitaire').innerText = coutReel.toFixed(3);
+        document.getElementById('pv-ht-marge').innerText = pvHTM.toFixed(2);
+        document.getElementById('pv-ttc-marge').innerText = (pvHTM * tva).toFixed(2);
+        document.getElementById('pv-ht-coeff').innerText = pvHTC.toFixed(2);
+        document.getElementById('pv-ttc-coeff').innerText = (pvHTC * tva).toFixed(2);
+
+        const bM = document.getElementById('box-marge'); const bC = document.getElementById('box-coeff');
+        bM.classList.remove('best'); bC.classList.remove('best');
+        if(pvHTM >= pvHTC && pvHTM > 0) bM.classList.add('best'); else if(pvHTC > 0) bC.classList.add('best');
+    }
+
+    function saveData() {
+        const mps = [];
+        document.querySelectorAll('#body-mp tr').forEach(tr => {
+            if(tr.querySelector('.mp-nom').value) mps.push({
+                act: tr.querySelector('select').value, fourn: tr.querySelector('.mp-fourn').value,
+                nom: tr.querySelector('.mp-nom').value, ht: tr.querySelector('.mp-ht').value, n1: tr.querySelector('.mp-ht').value
+            });
+        });
+        localStorage.setItem('boulangerie_v7', JSON.stringify(mps));
+        alert("Sauvegardé !"); location.reload();
+    }
+
+    function loadData() {
+        const s = localStorage.getItem('boulangerie_v7');
+        if(s) JSON.parse(s).forEach(d => addRowMP(d)); else addRowMP();
+    }
+
+    function initChart() {
+        myChart = new Chart(document.getElementById('priceChart').getContext('2d'), {
+            type: 'bar', data: { labels: [], datasets: [
+                { label: 'Actuel', data: [], backgroundColor: '#d35400' },
+                { label: 'Archive', data: [], backgroundColor: '#bdc3c7' }
+            ]}, options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+</script>
+</body>
+</html>
