@@ -237,13 +237,45 @@
     }
 
     function calculerRecette() {
-        let cout = 0, cru = 0;
-        document.querySelectorAll('#body-recette tr').forEach(tr => {
-            const p = parseFloat(tr.querySelector('.rec-select').value) || 0;
-            const q = parseFloat(tr.querySelector('.rec-qte').value) || 0;
-            const c = (q/1000)*p; tr.querySelector('.rec-cout-ligne').innerText = c.toFixed(2)+"€";
-            cout += c; cru += q;
-        });
+    let coutTotal = 0, poidsCruTotal = 0;
+    
+    // Calcul du coût des ingrédients
+    document.querySelectorAll('#body-recette tr').forEach(tr => {
+        const prixUnitaire = parseFloat(tr.querySelector('.rec-select').value) || 0;
+        const quantiteGrams = parseFloat(tr.querySelector('.rec-qte').value) || 0;
+        const coutLigne = (quantiteGrams / 1000) * prixUnitaire;
+        
+        tr.querySelector('.rec-cout-ligne').innerText = coutLigne.toFixed(2) + "€";
+        coutTotal += coutLigne;
+        poidsCruTotal += quantiteGrams;
+    });
+
+    document.getElementById('poids-cru').value = poidsCruTotal;
+
+    // Récupération des réglages dynamiques
+    const margeVisee = parseFloat(document.getElementById('cfg-marge').value) / 100 || 0.75;
+    const coeffVise = parseFloat(document.getElementById('cfg-coeff').value) || 4.3;
+    const tvaFrac = parseFloat(document.getElementById('cfg-tva').value) || 1.055;
+
+    // Mise à jour des textes d'affichage
+    document.getElementById('label-marge').innerText = `PV Marge (${(margeVisee * 100).toFixed(0)}%)`;
+    document.getElementById('label-coeff').innerText = `PV Coeff (x${coeffVise})`;
+
+    // Calculs finaux
+    const pvMargeTTC = (coutTotal / (1 - margeVisee)) * tvaFrac;
+    const pvCoeffTTC = (coutTotal * coeffVise) * tvaFrac;
+
+    document.getElementById('res-marge').innerText = pvMargeTTC.toFixed(2) + " €";
+    document.getElementById('res-coeff').innerText = pvCoeffTTC.toFixed(2) + " €";
+
+    // Gestion visuelle du badge "Optimal"
+    document.getElementById('box-marge').classList.toggle('best', pvMargeTTC >= pvCoeffTTC);
+    document.getElementById('box-coeff').classList.toggle('best', pvCoeffTTC > pvMargeTTC);
+
+    // On retourne les stats pour la fonction d'archivage
+    const margeReelle = (1 - (coutTotal / (Math.max(pvMargeTTC, pvCoeffTTC) / tvaFrac))) * 100;
+    return { cout: coutTotal, marge: margeReelle };
+}
         document.getElementById('poids-cru').value = cru;
         const pCuit = parseFloat(document.getElementById('poids-cuit').value) || cru;
         const pvM = (cout / 0.25) * 1.055; 
