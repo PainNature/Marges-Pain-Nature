@@ -3,267 +3,432 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro - Expert Rentabilité</title>
+    <title>Boulangerie Pro - Expert Rentabilité & Pertes</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --blue: #2980b9; --light: #f4f7f6; --gold: #f1c40f; }
-        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; margin: 0; padding: 20px; font-size: 14px; color: var(--secondary); }
-        
-        /* Interface */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--secondary); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; color: white; }
-        #login-overlay input { padding: 12px; font-size: 1.2em; border-radius: 5px; border: none; text-align: center; margin-top: 15px; }
-        .container { max-width: 1250px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: none; }
-        h1, h2 { color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; }
-        section { margin-bottom: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fff; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: var(--light); }
-        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .result-box { background: #fdfefe; padding: 20px; border-left: 6px solid var(--success); border-radius: 4px; }
-        .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .method-box { background: white; padding: 15px; border-radius: 8px; border: 2px solid #eee; transition: 0.3s; position: relative; }
-        .method-box.best { border-color: var(--gold); background: #fffdf2; transform: scale(1.02); }
-        .best-badge { position: absolute; top: -10px; right: -10px; background: var(--gold); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; display: none; }
-        .method-box.best .best-badge { display: block; }
-        .btn { padding: 10px 18px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; color: white; transition: 0.2s; }
-        .btn-save { background: var(--blue); }
-        .btn-pdf { background: #8e44ad; }
-        .btn-add { background: var(--success); margin-bottom: 10px; }
-        input, select { width: 92%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px; }
-        input[readonly] { background-color: #f0f0f0; }
-        .chart-container { height: 180px; }
-
-        /* OPTIMISATION PDF / IMPRESSION */
-        @media print {
-            body { background: white; padding: 0; }
-            #login-overlay, .btn, .chart-container, #table-mp, section:first-of-type, th:last-child, td:last-child { display: none !important; }
-            .container { box-shadow: none; width: 100%; display: block !important; }
-            .grid-layout { display: block; }
-            section { border: none; border-bottom: 1px solid #ccc; page-break-inside: avoid; }
-            .method-box { border: 1px solid #ddd !important; break-inside: avoid; }
-            .best-badge { border: 1px solid black; }
+        :root { 
+            --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; 
+            --danger: #e74c3c; --blue: #2980b9; --light: #f4f7f6; --gold: #f1c40f; 
         }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #dfe6e9; margin: 0; padding: 10px; font-size: 13px; color: var(--secondary); }
+        
+        /* Navigation par Onglets */
+        .nav-tabs { display: flex; flex-wrap: wrap; gap: 5px; background: var(--secondary); padding: 10px; border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 100; }
+        .tab-btn { padding: 10px 15px; border: none; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 5px; transition: 0.3s; font-weight: bold; }
+        .tab-btn:hover { background: rgba(255,255,255,0.2); }
+        .tab-btn.active { background: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        @media (max-width: 900px) { .grid-layout, .compare-grid { grid-template-columns: 1fr; } }
+        .container { background: white; padding: 20px; border-radius: 0 0 12px 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); min-height: 80vh; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        /* Tableaux et Sections */
+        section { margin-bottom: 25px; border: 1px solid #eee; padding: 15px; border-radius: 8px; background: #fff; }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--light); padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: var(--light); font-size: 12px; text-transform: uppercase; }
+        
+        input, select { width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: var(--success); }
+        .btn-save { background: var(--blue); }
+        .btn-danger { background: var(--danger); }
+        .btn-archive { background: #8e44ad; }
+
+        /* Mise en page Grille */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .result-box { background: #fdfefe; border-left: 5px solid var(--primary); padding: 15px; margin-top: 10px; border-radius: 4px; box-shadow: inset 0 0 10px #f4f7f6; }
+        .method-box { border: 2px solid #eee; padding: 15px; border-radius: 8px; text-align: center; position: relative; }
+        .method-box.best { border-color: var(--gold); background: #fffdf2; }
+        .best-badge { position: absolute; top: -10px; right: 10px; background: var(--gold); color: black; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+
+        /* Graphiques */
+        .chart-container { position: relative; height: 250px; width: 100%; }
+
+        @keyframes fadeIn { from {opacity: 0; transform: translateY(5px);} to {opacity: 1; transform: translateY(0);} }
+        @media print { .nav-tabs, .btn, .no-print, .action-col { display: none !important; } .container { box-shadow: none; border: none; } .tab-content { display: block !important; } }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-    <div id="login-overlay">
-        <h2>Pilotage Fournil - Accès</h2>
-        <input type="password" id="access-code" placeholder="Code secret" oninput="checkCode()">
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="showTab('tab-mp')">📦 Matières Premières</button>
+        <button class="tab-btn" onclick="showTab('tab-labo')">🧪 Labo Création</button>
+        <button class="tab-btn" onclick="showTab('tab-pertes'); renderPertes()">🗑️ Suivi Pertes</button>
+        <button class="tab-btn" onclick="showTab('tab-analyse'); updateCharts()">📊 Analyse Globale</button>
+        <button class="tab-btn" onclick="showTab('tab-fixe-boulange')">🥖 Boulange</button>
+        <button class="tab-btn" onclick="showTab('tab-fixe-patis')">🍰 Pâtis</button>
+        <button class="tab-btn" onclick="showTab('tab-fixe-voyage')">🧁 Voyage/Vienn.</button>
+        <button class="tab-btn" onclick="showTab('tab-ponctuel')">📅 Ponctuelles</button>
     </div>
 
-    <div class="container" id="main-app">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1>Fiche Technique & Rentabilité</h1>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-pdf" onclick="window.print()">📄 Export PDF (Fiche)</button>
-                <button class="btn btn-save" onclick="saveData()">💾 Sauvegarder</button>
+    <div class="container">
+        
+        <div id="tab-mp" class="tab-content active">
+            <h2>Base Ingrédients & Prix Fournisseurs</h2>
+            <p><small>Toute modification est enregistrée automatiquement.</small></p>
+            <table id="table-mp">
+                <thead>
+                    <tr><th>Fournisseur</th><th>Référence Ingrédient</th><th>Prix HT / kg ou L</th><th class="action-col">Action</th></tr>
+                </thead>
+                <tbody id="body-mp"></tbody>
+            </table>
+            <br>
+            <button class="btn btn-add" onclick="addRowMP()">+ Ajouter une référence</button>
+        </div>
+
+        <div id="tab-labo" class="tab-content">
+            <div class="grid-2">
+                <section>
+                    <h2>Composition de la Recette</h2>
+                    <input type="text" id="rec-nom" placeholder="Nom de la recette (ex: Croissant Pur Beurre)" style="font-size: 1.4em; margin-bottom: 15px;">
+                    <table id="table-recette">
+                        <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Coût HT</th><th class="action-col">Action</th></tr></thead>
+                        <tbody id="body-recette"></tbody>
+                    </table>
+                    <button class="btn btn-add" onclick="addRowRecette()" style="margin-top:10px">+ Ajouter Ingrédient</button>
+                </section>
+
+                <section>
+                    <h2>Calcul de Rentabilité</h2>
+                    <div class="result-box">
+                        <div class="grid-2">
+                            <div><label>Poids Cru (g)</label><input type="number" id="poids-cru" readonly></div>
+                            <div><label>Poids Cuit (g)</label><input type="number" id="poids-cuit" oninput="calculerRecette()"></div>
+                        </div>
+                        <p>Perte à la cuisson (Dessiccation) : <strong id="ratio-perte">0</strong>%</p>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="grid-2">
+                            <div><label>TVA (%)</label>
+                                <select id="tva" onchange="calculerRecette()">
+                                    <option value="5.5">5.5% (Pain/Vienn.)</option>
+                                    <option value="10">10% (Snacking)</option>
+                                    <option value="20">20% (Alcool/Traiteur)</option>
+                                </select>
+                            </div>
+                            <div><label>Objectif Marge (%)</label><input type="number" id="target-marge" value="75" oninput="calculerRecette()"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2" style="margin-top:15px">
+                        <div class="method-box" id="box-marge">
+                            <div class="best-badge">MÉTHODE MARGE</div>
+                            <small>Prix de vente conseillé</small>
+                            <h2 id="res-marge">0.00 €</h2>
+                        </div>
+                        <div class="method-box" id="box-coeff">
+                            <div class="best-badge">MÉTHODE COEFF</div>
+                            <small>Prix conseillé (Coeff 4.3)</small>
+                            <h2 id="res-coeff">0.00 €</h2>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px; display:flex; gap:10px" class="no-print">
+                        <button class="btn btn-archive" onclick="archiverRecette()">💾 Classer cette fiche</button>
+                        <button class="btn btn-save" onclick="window.print()">📄 Imprimer / PDF</button>
+                    </div>
+                </section>
             </div>
         </div>
 
-        <section id="section-matières">
-            <h2>Matières Premières</h2>
-            <table id="table-mp">
-                <thead><tr><th>Activité</th><th>Fournisseur</th><th>Matière</th><th>Prix HT (€/kg)</th><th>Evol.</th><th>Action</th></tr></thead>
-                <tbody id="body-mp"></tbody>
+        <div id="tab-pertes" class="tab-content">
+            <h2>Gestion du Gaspillage (Démarque)</h2>
+            <div class="grid-2">
+                <section>
+                    <h3>Enregistrer une perte</h3>
+                    <label>Date :</label><input type="date" id="perte-date" style="margin-bottom:10px">
+                    <label>Produit :</label><select id="perte-produit" style="margin-bottom:10px"></select>
+                    <label>Nombre d'unités perdues :</label><input type="number" id="perte-qte" placeholder="Ex: 5" style="margin-bottom:15px">
+                    <button class="btn btn-add" onclick="ajouterPerte()" style="width:100%">Valider la perte</button>
+                </section>
+                <section>
+                    <h3>Bilan Financier</h3>
+                    <div class="result-box" style="border-left-color: var(--danger);">
+                        <p>Total valeur pertes (Coût MP) : <h2 id="total-perte-valeur" style="color:var(--danger)">0.00 €</h2></p>
+                    </div>
+                    <div class="chart-container"><canvas id="chartPertes"></canvas></div>
+                </section>
+            </div>
+            <table id="table-pertes">
+                <thead><tr><th>Date</th><th>Produit</th><th>Quantité</th><th>Coût Perdu</th><th>Action</th></tr></thead>
+                <tbody id="body-pertes"></tbody>
             </table>
-            <button class="btn btn-add" onclick="addRowMP()">+ Ajouter</button>
-            <div class="chart-container"><canvas id="priceChart"></canvas></div>
-        </section>
-
-        <div class="grid-layout">
-            <section id="pdf-recette">
-                <h2>Recette : <span id="pdf-nom-titre">...</span></h2>
-                <div style="margin-bottom: 15px;">
-                    <label>Nom : </label><input type="text" id="recette-nom" oninput="document.getElementById('pdf-nom-titre').innerText=this.value" placeholder="Ex: Baguette Trad.">
-                    <br><br>
-                    <label>Poids total pâte : </label>
-                    <input type="number" id="recette-poids-total" value="0" readonly style="width: 80px;"> <strong>g</strong>
-                </div>
-                <table id="table-recette">
-                    <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Coût HT</th><th>Action</th></tr></thead>
-                    <tbody id="body-recette"></tbody>
-                </table>
-                <button class="btn btn-add" onclick="addRowRecette()">+ Ingrédient</button>
-            </section>
-
-            <section id="pdf-calculs">
-                <h2>Simulation & Prix de Vente</h2>
-                <div class="result-box">
-                    <div style="display:flex; justify-content: space-between;">
-                        <span>Coût Recette : <strong id="res-recette-total">0.00</strong> €</span>
-                        <span>Coût au kg : <strong id="res-recette-kg">0.00</strong> €</span>
-                    </div>
-                    <hr>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div>
-                            <label>Poids Pâton (g) :</label>
-                            <input type="number" id="poids-piece" value="250" oninput="calculerTout()">
-                        </div>
-                        <div>
-                            <label>TVA (%) :</label>
-                            <select id="taux-tva" onchange="calculerTout()">
-                                <option value="5.5" selected>5.5% (Pain)</option>
-                                <option value="10">10% (Snack)</option>
-                                <option value="20">20% (Traiteur)</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 10px;">
-                        <label>Démarque / Pertes (%) :</label>
-                        <input type="number" id="taux-perte" value="5" oninput="calculerTout()">
-                    </div>
-
-                    <p style="margin-top:15px;">Coût matière réel / pièce : <strong id="cout-unitaire" style="color:var(--danger)">0.00</strong> € HT</p>
-                    
-                    <div class="compare-grid">
-                        <div class="method-box" id="box-marge">
-                            <div class="best-badge">OPTIMAL</div>
-                            <label><strong>Taux de Marge</strong> (%)</label>
-                            <input type="number" id="taux-marge" value="70" oninput="calculerTout()">
-                            <h3 style="color:var(--success); margin-bottom:0;"><span id="pv-ht-marge">0.00</span> € HT</h3>
-                            <small>Soit <strong><span id="pv-ttc-marge">0.00</span> € TTC</strong></small>
-                        </div>
-                        <div class="method-box" id="box-coeff">
-                            <div class="best-badge">OPTIMAL</div>
-                            <label><strong>Coefficient</strong></label>
-                            <input type="number" id="coeff-mult" value="4.5" step="0.1" oninput="calculerTout()">
-                            <h3 style="color:var(--blue); margin-bottom:0;"><span id="pv-ht-coeff">0.00</span> € HT</h3>
-                            <small>Soit <strong><span id="pv-ttc-coeff">0.00</span> € TTC</strong></small>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </div>
+
+        <div id="tab-analyse" class="tab-content">
+            <h2>Analyse de la rentabilité du catalogue</h2>
+            <div class="grid-2">
+                <div class="chart-container"><canvas id="chartGlobalMarge"></canvas></div>
+                <div class="result-box">
+                    <h3>Statistiques catalogue</h3>
+                    <p>Nombre de produits : <strong id="stat-nb">0</strong></p>
+                    <p>Marge moyenne : <strong id="stat-marge">0</strong> %</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-fixe-boulange" class="tab-content archive-zone"><h2>Archives Boulangerie</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-patis" class="tab-content archive-zone"><h2>Archives Pâtisserie</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-voyage" class="tab-content archive-zone"><h2>Archives Gâteaux Voyage & Vienn.</h2><div class="archive-list"></div></div>
+        <div id="tab-ponctuel" class="tab-content archive-zone"><h2>Archives Recettes Ponctuelles</h2><div class="archive-list"></div></div>
+
     </div>
 
 <script>
-    const CODE_VALIDE = "1234";
-    let myChart;
+    // --- VARIABLES GLOBALES ---
+    let chartAnalyse = null;
+    let chartPertes = null;
 
-    function checkCode() {
-        if(document.getElementById('access-code').value === CODE_VALIDE) {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            loadData(); initChart(); refreshAnalyse();
+    // --- NAVIGATION ---
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // --- GESTION MATIERES PREMIERES ---
+    function addRowMP(data = {f: '', r: '', p: ''}) {
+        const row = document.getElementById('body-mp').insertRow();
+        row.innerHTML = `
+            <td><input type="text" value="${data.f}" placeholder="Ex: Grands Moulins" onchange="saveMP()"></td>
+            <td><input type="text" class="mp-ref" value="${data.r}" placeholder="Ex: Farine T65" onchange="saveMP(); updateDrops()"></td>
+            <td><input type="number" step="0.001" class="mp-prix" value="${data.p}" placeholder="0.00" onchange="saveMP(); calculerRecette()"></td>
+            <td class="action-col"><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); saveMP(); updateDrops()">❌</button></td>
+        `;
+    }
+
+    function saveMP() {
+        const data = [];
+        document.querySelectorAll('#body-mp tr').forEach(tr => {
+            const inputs = tr.querySelectorAll('input');
+            if(inputs[1].value) data.push({f: inputs[0].value, r: inputs[1].value, p: inputs[2].value});
+        });
+        localStorage.setItem('boulange_v8_mp', JSON.stringify(data));
+    }
+
+    function loadMP() {
+        const saved = JSON.parse(localStorage.getItem('boulange_v8_mp') || '[]');
+        saved.forEach(d => addRowMP(d));
+        if(saved.length === 0) addRowMP();
+        updateDrops();
+    }
+
+    // --- GESTION LABO RECETTE ---
+    function updateDrops() {
+        const refs = document.querySelectorAll('.mp-ref');
+        const prix = document.querySelectorAll('.mp-prix');
+        let options = '<option value="">--Choisir--</option>';
+        refs.forEach((r, i) => {
+            if(r.value) options += `<option value="${prix[i].value}">${r.value} (${prix[i].value}€)</option>`;
+        });
+        document.querySelectorAll('.rec-select').forEach(sel => {
+            const current = sel.value;
+            sel.innerHTML = options;
+            sel.value = current;
+        });
+    }
+
+    function addRowRecette() {
+        const row = document.getElementById('body-recette').insertRow();
+        row.innerHTML = `
+            <td><select class="rec-select" onchange="calculerRecette()"></select></td>
+            <td><input type="number" class="rec-qte" oninput="calculerRecette()" value="0"></td>
+            <td class="rec-cout-ligne">0.00 €</td>
+            <td class="action-col"><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculerRecette()">❌</button></td>
+        `;
+        updateDrops();
+    }
+
+    function calculerRecette() {
+        let totalCout = 0; let totalCru = 0;
+        document.querySelectorAll('#body-recette tr').forEach(tr => {
+            const prixKg = parseFloat(tr.querySelector('.rec-select').value) || 0;
+            const qteG = parseFloat(tr.querySelector('.rec-qte').value) || 0;
+            const cout = (qteG / 1000) * prixKg;
+            tr.querySelector('.rec-cout-ligne').innerText = cout.toFixed(2) + " €";
+            totalCout += cout; totalCru += qteG;
+        });
+
+        document.getElementById('poids-cru').value = totalCru;
+        const pCuit = parseFloat(document.getElementById('poids-cuit').value) || totalCru;
+        document.getElementById('ratio-perte').innerText = totalCru > 0 ? ((totalCru - pCuit) / totalCru * 100).toFixed(1) : 0;
+
+        const tva = 1 + (parseFloat(document.getElementById('tva').value) / 100);
+        const margeVisee = parseFloat(document.getElementById('target-marge').value) / 100;
+        const pvMargeTTC = (totalCout / (1 - margeVisee)) * tva;
+        const pvCoeffTTC = (totalCout * 4.3) * tva;
+
+        document.getElementById('res-marge').innerText = pvMargeTTC.toFixed(2) + " € TTC";
+        document.getElementById('res-coeff').innerText = pvCoeffTTC.toFixed(2) + " € TTC";
+
+        document.getElementById('box-marge').classList.toggle('best', pvMargeTTC >= pvCoeffTTC);
+        document.getElementById('box-coeff').classList.toggle('best', pvCoeffTTC > pvMargeTTC);
+        return { cout: totalCout, pv: Math.max(pvMargeTTC, pvCoeffTTC), marge: (1 - (totalCout / (Math.max(pvMargeTTC, pvCoeffTTC)/tva)))*100 };
+    }
+
+    // --- ARCHIVAGE ---
+    function archiverRecette() {
+        const nom = document.getElementById('rec-nom').value;
+        if(!nom) return alert("Donnez un nom à la recette");
+        const cat = prompt("Catégorie ? 1:Boulange, 2:Pâtis, 3:Voyage, 4:Ponctuel");
+        const targetIds = ["", "tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"];
+        const targetId = targetIds[cat] || "tab-ponctuel";
+
+        const stats = calculerRecette();
+        const clone = document.getElementById('tab-labo').cloneNode(true);
+        clone.querySelectorAll('.no-print, .btn, .action-col').forEach(el => el.remove());
+        clone.querySelectorAll('input, select').forEach(el => el.setAttribute('readonly', true));
+
+        const archiveData = {
+            id: Date.now(),
+            nom: nom,
+            html: clone.innerHTML,
+            cout: stats.cout,
+            marge: stats.marge
+        };
+
+        const archives = JSON.parse(localStorage.getItem('archives_' + targetId) || '[]');
+        archives.push(archiveData);
+        localStorage.setItem('archives_' + targetId, JSON.stringify(archives));
+        
+        loadArchives();
+        alert("Fiche archivée !");
+    }
+
+    function loadArchives() {
+        const ids = ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"];
+        ids.forEach(id => {
+            const container = document.querySelector(`#${id} .archive-list`);
+            container.innerHTML = "";
+            const data = JSON.parse(localStorage.getItem('archives_' + id) || '[]');
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "result-box";
+                div.style.marginBottom = "30px";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between"><h3>${item.nom}</h3><button class="btn btn-danger no-print" onclick="deleteArchive('${id}', ${item.id})">Supprimer</button></div>` + item.html;
+                container.appendChild(div);
+            });
+        });
+        updatePertesDrops();
+    }
+
+    function deleteArchive(cat, id) {
+        if(confirm("Supprimer cette archive ?")) {
+            let data = JSON.parse(localStorage.getItem('archives_' + cat) || '[]');
+            data = data.filter(i => i.id !== id);
+            localStorage.setItem('archives_' + cat, JSON.stringify(data));
+            loadArchives();
         }
     }
 
-    function addRowMP(data = {}) {
-        const tbody = document.getElementById('body-mp');
-        const row = tbody.insertRow();
-        const n1 = data.n1 || data.ht || 0;
-        row.innerHTML = `
-            <td><select><option ${data.act=='Boulangerie'?'selected':''}>Boulangerie</option><option ${data.act=='Pâtisserie'?'selected':''}>Pâtisserie</option></select></td>
-            <td><input type="text" class="mp-fourn" value="${data.fournisseur || ''}"></td>
-            <td><input type="text" class="mp-nom" value="${data.nom || ''}" onchange="updateDropdowns()"></td>
-            <td><input type="number" class="mp-ht" step="0.001" value="${data.ht || ''}" oninput="refreshAnalyse()"></td>
-            <td class="mp-evol">-</td><input type="hidden" class="mp-n1" value="${n1}">
-            <td><button onclick="this.parentElement.parentElement.remove(); refreshAnalyse(); updateDropdowns()">❌</button></td>`;
-        updateDropdowns();
-    }
-
-    function refreshAnalyse() {
-        const labels = []; const current = []; const old = [];
-        document.querySelectorAll('#body-mp tr').forEach(tr => {
-            const nom = tr.querySelector('.mp-nom').value;
-            const ht = parseFloat(tr.querySelector('.mp-ht').value) || 0;
-            const n1 = parseFloat(tr.querySelector('.mp-n1').value) || ht;
-            const evol = tr.querySelector('.mp-evol');
-            if (n1 > 0 && ht !== n1) {
-                const pct = ((ht - n1) / n1 * 100).toFixed(1);
-                evol.innerHTML = `<span class="badge ${pct > 0 ? 'badge-danger' : 'badge-success'}">${pct > 0 ? '+' : ''}${pct}%</span>`;
-            } else { evol.innerHTML = `<span class="badge" style="background:#bdc3c7">0%</span>`; }
-            if(nom) { labels.push(nom); current.push(ht); old.push(n1); }
-        });
-        if(myChart) { myChart.data.labels = labels; myChart.data.datasets[0].data = current; myChart.data.datasets[1].data = old; myChart.update(); }
-        calculerTout();
-    }
-
-    function addRowRecette(data = {}) {
-        const row = document.getElementById('body-recette').insertRow();
-        row.innerHTML = `
-            <td><select class="rec-select" onchange="calculerTout()">${getMPOptions(data.nomIdx)}</select></td>
-            <td><input type="number" class="rec-qte" value="${data.qte || ''}" oninput="calculerTout()"></td>
-            <td class="rec-cout-ligne">0.00</td>
-            <td><button onclick="this.parentElement.parentElement.remove(); calculerTout()">❌</button></td>`;
-    }
-
-    function getMPOptions(sel) {
-        let h = '<option value="">--Choisir--</option>';
-        document.querySelectorAll('.mp-nom').forEach((mp, i) => { h += `<option value="${i}" ${sel == i ? 'selected' : ''}>${mp.value}</option>`; });
-        return h;
-    }
-
-    function updateDropdowns() {
-        document.querySelectorAll('.rec-select').forEach(s => { const v = s.value; s.innerHTML = getMPOptions(v); });
-    }
-
-    function calculerTout() {
-        let totalHT = 0; let pTotal = 0;
-        const mpHts = document.querySelectorAll('.mp-ht');
-        document.querySelectorAll('#body-recette tr').forEach(tr => {
-            const idx = tr.querySelector('.rec-select').value;
-            const q = parseFloat(tr.querySelector('.rec-qte').value) || 0;
-            pTotal += q;
-            if(idx !== "") {
-                const cout = (q / 1000) * (parseFloat(mpHts[idx].value) || 0);
-                tr.querySelector('.rec-cout-ligne').innerText = cout.toFixed(2);
-                totalHT += cout;
-            }
-        });
-
-        document.getElementById('recette-poids-total').value = pTotal;
-        const coutKg = pTotal > 0 ? totalHT / (pTotal / 1000) : 0;
-        const pPiece = parseFloat(document.getElementById('poids-piece').value) || 0;
-        const tva = 1 + (parseFloat(document.getElementById('taux-tva').value) / 100);
-        const coutBase = (pPiece / 1000) * coutKg;
-        const coutReel = coutBase / ((100 - (parseFloat(document.getElementById('taux-perte').value) || 0)) / 100);
-
-        const pvHTM = (parseFloat(document.getElementById('taux-marge').value) < 100) ? (coutReel / ((100 - parseFloat(document.getElementById('taux-marge').value)) / 100)) : 0;
-        const pvHTC = coutReel * (parseFloat(document.getElementById('coeff-mult').value) || 0);
-
-        document.getElementById('res-recette-total').innerText = totalHT.toFixed(2);
-        document.getElementById('res-recette-kg').innerText = coutKg.toFixed(2);
-        document.getElementById('cout-unitaire').innerText = coutReel.toFixed(3);
-        document.getElementById('pv-ht-marge').innerText = pvHTM.toFixed(2);
-        document.getElementById('pv-ttc-marge').innerText = (pvHTM * tva).toFixed(2);
-        document.getElementById('pv-ht-coeff').innerText = pvHTC.toFixed(2);
-        document.getElementById('pv-ttc-coeff').innerText = (pvHTC * tva).toFixed(2);
-
-        const bM = document.getElementById('box-marge'); const bC = document.getElementById('box-coeff');
-        bM.classList.remove('best'); bC.classList.remove('best');
-        if(pvHTM >= pvHTC && pvHTM > 0) bM.classList.add('best'); else if(pvHTC > 0) bC.classList.add('best');
-    }
-
-    function saveData() {
-        const mps = [];
-        document.querySelectorAll('#body-mp tr').forEach(tr => {
-            if(tr.querySelector('.mp-nom').value) mps.push({
-                act: tr.querySelector('select').value, fourn: tr.querySelector('.mp-fourn').value,
-                nom: tr.querySelector('.mp-nom').value, ht: tr.querySelector('.mp-ht').value, n1: tr.querySelector('.mp-ht').value
+    // --- GESTION DES PERTES ---
+    function updatePertesDrops() {
+        const select = document.getElementById('perte-produit');
+        let options = "";
+        ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"].forEach(cat => {
+            const data = JSON.parse(localStorage.getItem('archives_' + cat) || '[]');
+            data.forEach(item => {
+                options += `<option value="${item.cout}">${item.nom}</option>`;
             });
         });
-        localStorage.setItem('boulangerie_v7', JSON.stringify(mps));
-        alert("Sauvegardé !"); location.reload();
+        select.innerHTML = options;
     }
 
-    function loadData() {
-        const s = localStorage.getItem('boulangerie_v7');
-        if(s) JSON.parse(s).forEach(d => addRowMP(d)); else addRowMP();
+    function ajouterPerte() {
+        const date = document.getElementById('perte-date').value;
+        const select = document.getElementById('perte-produit');
+        const qte = parseFloat(document.getElementById('perte-qte').value) || 0;
+        if(!date || !select.value || qte <= 0) return alert("Saisie incomplète");
+
+        const perte = {
+            id: Date.now(),
+            date: date,
+            nom: select.options[select.selectedIndex].text,
+            valeur: (parseFloat(select.value) * qte).toFixed(2),
+            qte: qte
+        };
+
+        const pertes = JSON.parse(localStorage.getItem('boulange_pertes') || '[]');
+        pertes.push(perte);
+        localStorage.setItem('boulange_pertes', JSON.stringify(pertes));
+        renderPertes();
     }
 
-    function initChart() {
-        myChart = new Chart(document.getElementById('priceChart').getContext('2d'), {
-            type: 'bar', data: { labels: [], datasets: [
-                { label: 'Actuel', data: [], backgroundColor: '#d35400' },
-                { label: 'Archive', data: [], backgroundColor: '#bdc3c7' }
-            ]}, options: { responsive: true, maintainAspectRatio: false }
+    function renderPertes() {
+        const pertes = JSON.parse(localStorage.getItem('boulange_pertes') || '[]');
+        const tbody = document.getElementById('body-pertes');
+        tbody.innerHTML = "";
+        let total = 0;
+        pertes.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(p => {
+            const row = tbody.insertRow();
+            row.innerHTML = `<td>${p.date}</td><td>${p.nom}</td><td>${p.qte}</td><td>${p.valeur} €</td><td><button onclick="deletePerte(${p.id})">❌</button></td>`;
+            total += parseFloat(p.valeur);
+        });
+        document.getElementById('total-perte-valeur').innerText = total.toFixed(2) + " €";
+        updatePertesChart(pertes);
+    }
+
+    function deletePerte(id) {
+        let pertes = JSON.parse(localStorage.getItem('boulange_pertes') || '[]');
+        pertes = pertes.filter(p => p.id !== id);
+        localStorage.setItem('boulange_pertes', JSON.stringify(pertes));
+        renderPertes();
+    }
+
+    // --- GRAPHIQUES ---
+    function updateCharts() {
+        const ctx = document.getElementById('chartGlobalMarge').getContext('2d');
+        const labels = []; const marges = [];
+        let totalMarge = 0; let count = 0;
+
+        ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"].forEach(cat => {
+            const data = JSON.parse(localStorage.getItem('archives_' + cat) || '[]');
+            data.forEach(item => {
+                labels.push(item.nom);
+                marges.push(item.marge.toFixed(1));
+                totalMarge += item.marge;
+                count++;
+            });
+        });
+
+        document.getElementById('stat-nb').innerText = count;
+        document.getElementById('stat-marge').innerText = count > 0 ? (totalMarge/count).toFixed(1) : 0;
+
+        if(chartAnalyse) chartAnalyse.destroy();
+        chartAnalyse = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'Marge (%)', data: marges, backgroundColor: '#d35400' }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
+
+    function updatePertesChart(pertes) {
+        const ctx = document.getElementById('chartPertes').getContext('2d');
+        const summary = {};
+        pertes.forEach(p => summary[p.nom] = (summary[p.nom] || 0) + parseFloat(p.valeur));
+        
+        if(chartPertes) chartPertes.destroy();
+        chartPertes = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(summary),
+                datasets: [{ data: Object.values(summary), backgroundColor: ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // --- INITIALISATION ---
+    window.onload = () => {
+        loadMP();
+        loadArchives();
+        document.getElementById('perte-date').valueAsDate = new Date();
+    };
 </script>
 </body>
 </html>
