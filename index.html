@@ -3,187 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro - Expert Rentabilité & Pertes</title>
+    <title>Boulangerie Pro Cloud - Gestion Totale</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { 
             --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; 
             --danger: #e74c3c; --blue: #2980b9; --light: #f4f7f6; --gold: #f1c40f; 
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #dfe6e9; margin: 0; padding: 10px; font-size: 13px; color: var(--secondary); }
+        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; margin: 0; padding: 10px; font-size: 13px; color: var(--secondary); }
         
-        /* Navigation par Onglets */
+        /* Navigation */
         .nav-tabs { display: flex; flex-wrap: wrap; gap: 5px; background: var(--secondary); padding: 10px; border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 100; }
         .tab-btn { padding: 10px 15px; border: none; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 5px; transition: 0.3s; font-weight: bold; }
-        .tab-btn:hover { background: rgba(255,255,255,0.2); }
-        .tab-btn.active { background: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .tab-btn.active { background: var(--primary); }
 
-        .container { background: white; padding: 20px; border-radius: 0 0 12px 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); min-height: 80vh; }
+        .container { background: white; padding: 20px; border-radius: 0 0 12px 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); min-height: 85vh; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
-        /* Tableaux et Sections */
         section { margin-bottom: 25px; border: 1px solid #eee; padding: 15px; border-radius: 8px; background: #fff; }
         h2 { color: var(--primary); border-bottom: 2px solid var(--light); padding-bottom: 10px; margin-top: 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: var(--light); font-size: 12px; text-transform: uppercase; }
+        th { background: var(--light); }
         
-        input, select { width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-        .btn { padding: 10px 15px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        input, select { width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
         .btn-add { background: var(--success); }
         .btn-save { background: var(--blue); }
         .btn-danger { background: var(--danger); }
-        .btn-archive { background: #8e44ad; }
+        .btn-cloud { background: #8e44ad; }
 
-        /* Mise en page Grille */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .result-box { background: #fdfefe; border-left: 5px solid var(--primary); padding: 15px; margin-top: 10px; border-radius: 4px; box-shadow: inset 0 0 10px #f4f7f6; }
+        .result-box { background: #fdfefe; border-left: 5px solid var(--primary); padding: 15px; margin-top: 10px; border-radius: 4px; }
         .method-box { border: 2px solid #eee; padding: 15px; border-radius: 8px; text-align: center; position: relative; }
         .method-box.best { border-color: var(--gold); background: #fffdf2; }
         .best-badge { position: absolute; top: -10px; right: 10px; background: var(--gold); color: black; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
 
-        /* Graphiques */
-        .chart-container { position: relative; height: 250px; width: 100%; }
-
-        @keyframes fadeIn { from {opacity: 0; transform: translateY(5px);} to {opacity: 1; transform: translateY(0);} }
-        @media print { .nav-tabs, .btn, .no-print, .action-col { display: none !important; } .container { box-shadow: none; border: none; } .tab-content { display: block !important; } }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
         @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="showTab('tab-mp')">📦 Matières Premières</button>
+        <button class="tab-btn active" onclick="showTab('tab-mp')">📦 Stocks & Cloud</button>
         <button class="tab-btn" onclick="showTab('tab-labo')">🧪 Labo Création</button>
-        <button class="tab-btn" onclick="showTab('tab-pertes'); renderPertes()">🗑️ Suivi Pertes</button>
-        <button class="tab-btn" onclick="showTab('tab-analyse'); updateCharts()">📊 Analyse Globale</button>
+        <button class="tab-btn" onclick="showTab('tab-pertes'); renderPertes()">🗑️ Pertes</button>
+        <button class="tab-btn" onclick="showTab('tab-analyse'); updateCharts()">📊 Analyse</button>
         <button class="tab-btn" onclick="showTab('tab-fixe-boulange')">🥖 Boulange</button>
         <button class="tab-btn" onclick="showTab('tab-fixe-patis')">🍰 Pâtis</button>
-        <button class="tab-btn" onclick="showTab('tab-fixe-voyage')">🧁 Voyage/Vienn.</button>
-        <button class="tab-btn" onclick="showTab('tab-ponctuel')">📅 Ponctuelles</button>
+        <button class="tab-btn" onclick="showTab('tab-fixe-voyage')">🧁 Voyage</button>
     </div>
 
     <div class="container">
         
         <div id="tab-mp" class="tab-content active">
-            <h2>Base Ingrédients & Prix Fournisseurs</h2>
-            <p><small>Toute modification est enregistrée automatiquement.</small></p>
+            <section style="background: #ebf5fb; border: 1px solid var(--blue);">
+                <h3>☁️ Synchronisation Cloud (GitHub Gist)</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-cloud" onclick="configurerCloud()">🔑 Configurer Connexion</button>
+                    <button class="btn btn-save" onclick="chargerDepuisCloud()">🔄 Forcer Mise à jour Cloud -> Appareil</button>
+                </div>
+                <p id="cloud-status" style="margin-top:10px; font-size: 0.9em; color: var(--blue);">Statut : Local uniquement</p>
+            </section>
+
+            <h2>Base Ingrédients</h2>
             <table id="table-mp">
-                <thead>
-                    <tr><th>Fournisseur</th><th>Référence Ingrédient</th><th>Prix HT / kg ou L</th><th class="action-col">Action</th></tr>
-                </thead>
+                <thead><tr><th>Fournisseur</th><th>Référence</th><th>Prix HT/kg</th><th>Action</th></tr></thead>
                 <tbody id="body-mp"></tbody>
             </table>
             <br>
-            <button class="btn btn-add" onclick="addRowMP()">+ Ajouter une référence</button>
+            <button class="btn btn-add" onclick="addRowMP()">+ Ajouter Ingrédient</button>
         </div>
 
         <div id="tab-labo" class="tab-content">
             <div class="grid-2">
                 <section>
-                    <h2>Composition de la Recette</h2>
-                    <input type="text" id="rec-nom" placeholder="Nom de la recette (ex: Croissant Pur Beurre)" style="font-size: 1.4em; margin-bottom: 15px;">
+                    <h2>🧪 Nouvelle Recette</h2>
+                    <input type="text" id="rec-nom" placeholder="Nom de la recette" style="font-size: 1.3em; margin-bottom:15px">
                     <table id="table-recette">
-                        <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Coût HT</th><th class="action-col">Action</th></tr></thead>
+                        <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Coût</th><th>Action</th></tr></thead>
                         <tbody id="body-recette"></tbody>
                     </table>
-                    <button class="btn btn-add" onclick="addRowRecette()" style="margin-top:10px">+ Ajouter Ingrédient</button>
+                    <button class="btn btn-add" onclick="addRowRecette()" style="margin-top:10px">+ Ingrédient</button>
                 </section>
-
                 <section>
-                    <h2>Calcul de Rentabilité</h2>
+                    <h2>Rentabilité & Cuisson</h2>
                     <div class="result-box">
                         <div class="grid-2">
                             <div><label>Poids Cru (g)</label><input type="number" id="poids-cru" readonly></div>
                             <div><label>Poids Cuit (g)</label><input type="number" id="poids-cuit" oninput="calculerRecette()"></div>
                         </div>
-                        <p>Perte à la cuisson (Dessiccation) : <strong id="ratio-perte">0</strong>%</p>
                     </div>
-
-                    <div class="result-box">
-                        <div class="grid-2">
-                            <div><label>TVA (%)</label>
-                                <select id="tva" onchange="calculerRecette()">
-                                    <option value="5.5">5.5% (Pain/Vienn.)</option>
-                                    <option value="10">10% (Snacking)</option>
-                                    <option value="20">20% (Alcool/Traiteur)</option>
-                                </select>
-                            </div>
-                            <div><label>Objectif Marge (%)</label><input type="number" id="target-marge" value="75" oninput="calculerRecette()"></div>
-                        </div>
-                    </div>
-
                     <div class="grid-2" style="margin-top:15px">
-                        <div class="method-box" id="box-marge">
-                            <div class="best-badge">MÉTHODE MARGE</div>
-                            <small>Prix de vente conseillé</small>
-                            <h2 id="res-marge">0.00 €</h2>
-                        </div>
-                        <div class="method-box" id="box-coeff">
-                            <div class="best-badge">MÉTHODE COEFF</div>
-                            <small>Prix conseillé (Coeff 4.3)</small>
-                            <h2 id="res-coeff">0.00 €</h2>
-                        </div>
+                        <div class="method-box" id="box-marge"><div class="best-badge">OPTIMAL</div><small>PV Marge</small><h2 id="res-marge">0.00 €</h2></div>
+                        <div class="method-box" id="box-coeff"><div class="best-badge">OPTIMAL</div><small>PV Coeff</small><h2 id="res-coeff">0.00 €</h2></div>
                     </div>
-
-                    <div style="margin-top:20px; display:flex; gap:10px" class="no-print">
-                        <button class="btn btn-archive" onclick="archiverRecette()">💾 Classer cette fiche</button>
-                        <button class="btn btn-save" onclick="window.print()">📄 Imprimer / PDF</button>
-                    </div>
+                    <button class="btn btn-cloud" style="width:100%; margin-top:20px" onclick="archiverRecette()">💾 Archiver & Sauvegarder Cloud</button>
                 </section>
             </div>
         </div>
 
         <div id="tab-pertes" class="tab-content">
-            <h2>Gestion du Gaspillage (Démarque)</h2>
+            <h2>Suivi des Pertes</h2>
             <div class="grid-2">
                 <section>
-                    <h3>Enregistrer une perte</h3>
-                    <label>Date :</label><input type="date" id="perte-date" style="margin-bottom:10px">
-                    <label>Produit :</label><select id="perte-produit" style="margin-bottom:10px"></select>
-                    <label>Nombre d'unités perdues :</label><input type="number" id="perte-qte" placeholder="Ex: 5" style="margin-bottom:15px">
-                    <button class="btn btn-add" onclick="ajouterPerte()" style="width:100%">Valider la perte</button>
+                    <label>Date :</label><input type="date" id="perte-date"><br><br>
+                    <label>Produit :</label><select id="perte-produit"></select><br><br>
+                    <label>Quantité :</label><input type="number" id="perte-qte"><br><br>
+                    <button class="btn btn-add" onclick="ajouterPerte()">Enregistrer</button>
                 </section>
-                <section>
-                    <h3>Bilan Financier</h3>
-                    <div class="result-box" style="border-left-color: var(--danger);">
-                        <p>Total valeur pertes (Coût MP) : <h2 id="total-perte-valeur" style="color:var(--danger)">0.00 €</h2></p>
-                    </div>
-                    <div class="chart-container"><canvas id="chartPertes"></canvas></div>
-                </section>
+                <section><div class="result-box"><h3>Total Pertes</h3><h2 id="total-perte-valeur">0.00 €</h2></div></section>
             </div>
-            <table id="table-pertes">
-                <thead><tr><th>Date</th><th>Produit</th><th>Quantité</th><th>Coût Perdu</th><th>Action</th></tr></thead>
-                <tbody id="body-pertes"></tbody>
-            </table>
+            <table id="table-pertes"><thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Valeur</th><th>Action</th></tr></thead><tbody id="body-pertes"></tbody></table>
         </div>
 
         <div id="tab-analyse" class="tab-content">
-            <h2>Analyse de la rentabilité du catalogue</h2>
-            <div class="grid-2">
-                <div class="chart-container"><canvas id="chartGlobalMarge"></canvas></div>
-                <div class="result-box">
-                    <h3>Statistiques catalogue</h3>
-                    <p>Nombre de produits : <strong id="stat-nb">0</strong></p>
-                    <p>Marge moyenne : <strong id="stat-marge">0</strong> %</p>
-                </div>
-            </div>
+            <h2>Analyse Catalogue</h2>
+            <div style="height:300px"><canvas id="chartGlobalMarge"></canvas></div>
         </div>
 
-        <div id="tab-fixe-boulange" class="tab-content archive-zone"><h2>Archives Boulangerie</h2><div class="archive-list"></div></div>
-        <div id="tab-fixe-patis" class="tab-content archive-zone"><h2>Archives Pâtisserie</h2><div class="archive-list"></div></div>
-        <div id="tab-fixe-voyage" class="tab-content archive-zone"><h2>Archives Gâteaux Voyage & Vienn.</h2><div class="archive-list"></div></div>
-        <div id="tab-ponctuel" class="tab-content archive-zone"><h2>Archives Recettes Ponctuelles</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-boulange" class="tab-content archive-zone"><h2>Boulangerie</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-patis" class="tab-content archive-zone"><h2>Pâtisserie</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-voyage" class="tab-content archive-zone"><h2>Voyage & Vienn.</h2><div class="archive-list"></div></div>
 
     </div>
 
 <script>
-    // --- VARIABLES GLOBALES ---
-    let chartAnalyse = null;
-    let chartPertes = null;
+    // --- CONFIG CLOUD (GitHub Gist) ---
+    let GIST_ID = localStorage.getItem('gist_id') || "";
+    let GIST_TOKEN = localStorage.getItem('gist_token') || "";
 
-    // --- NAVIGATION ---
+    async function sauvegarderVersCloud() {
+        if (!GIST_ID || !GIST_TOKEN) return;
+        document.getElementById('cloud-status').innerText = "☁️ Synchronisation en cours...";
+        const data = {
+            mp: localStorage.getItem('boulange_v8_mp'),
+            pertes: localStorage.getItem('boulange_pertes'),
+            boulange: localStorage.getItem('archives_tab-fixe-boulange'),
+            patis: localStorage.getItem('archives_tab-fixe-patis'),
+            voyage: localStorage.getItem('archives_tab-fixe-voyage')
+        };
+        try {
+            await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `token ${GIST_TOKEN}` },
+                body: JSON.stringify({ files: { "boulangerie_data.json": { content: JSON.stringify(data) } } })
+            });
+            document.getElementById('cloud-status').innerText = "✅ Synchronisé avec GitHub";
+        } catch (e) { document.getElementById('cloud-status').innerText = "❌ Erreur de synchro"; }
+    }
+
+    async function chargerDepuisCloud() {
+        if (!GIST_ID || !GIST_TOKEN) return alert("Configurez le Cloud d'abord.");
+        try {
+            const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, { headers: { 'Authorization': `token ${GIST_TOKEN}` } });
+            const gist = await res.json();
+            const data = JSON.parse(gist.files["boulangerie_data.json"].content);
+            if(data.mp) localStorage.setItem('boulange_v8_mp', data.mp);
+            if(data.pertes) localStorage.setItem('boulange_pertes', data.pertes);
+            if(data.boulange) localStorage.setItem('archives_tab-fixe-boulange', data.boulange);
+            if(data.patis) localStorage.setItem('archives_tab-fixe-patis', data.patis);
+            if(data.voyage) localStorage.setItem('archives_tab-fixe-voyage', data.voyage);
+            location.reload();
+        } catch (e) { alert("Erreur de récupération Cloud."); }
+    }
+
+    function configurerCloud() {
+        const id = prompt("ID du Gist :", GIST_ID);
+        const token = prompt("Token GitHub (ghp_...) :", GIST_TOKEN);
+        if(id && token) {
+            localStorage.setItem('gist_id', id); localStorage.setItem('gist_token', token);
+            GIST_ID = id; GIST_TOKEN = token;
+            chargerDepuisCloud();
+        }
+    }
+
+    // --- LOGIQUE METIER ---
     function showTab(id) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -191,242 +188,121 @@
         event.currentTarget.classList.add('active');
     }
 
-    // --- GESTION MATIERES PREMIERES ---
-    function addRowMP(data = {f: '', r: '', p: ''}) {
+    function addRowMP(data = {f:'', r:'', p:''}) {
         const row = document.getElementById('body-mp').insertRow();
         row.innerHTML = `
-            <td><input type="text" value="${data.f}" placeholder="Ex: Grands Moulins" onchange="saveMP()"></td>
-            <td><input type="text" class="mp-ref" value="${data.r}" placeholder="Ex: Farine T65" onchange="saveMP(); updateDrops()"></td>
-            <td><input type="number" step="0.001" class="mp-prix" value="${data.p}" placeholder="0.00" onchange="saveMP(); calculerRecette()"></td>
-            <td class="action-col"><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); saveMP(); updateDrops()">❌</button></td>
+            <td><input type="text" value="${data.f}" onchange="saveMP()"></td>
+            <td><input type="text" class="mp-ref" value="${data.r}" onchange="saveMP(); updateDrops()"></td>
+            <td><input type="number" step="0.001" class="mp-prix" value="${data.p}" onchange="saveMP(); calculerRecette()"></td>
+            <td><button onclick="this.parentElement.parentElement.remove(); saveMP()">❌</button></td>
         `;
     }
 
     function saveMP() {
         const data = [];
         document.querySelectorAll('#body-mp tr').forEach(tr => {
-            const inputs = tr.querySelectorAll('input');
-            if(inputs[1].value) data.push({f: inputs[0].value, r: inputs[1].value, p: inputs[2].value});
+            const ins = tr.querySelectorAll('input');
+            if(ins[1].value) data.push({f:ins[0].value, r:ins[1].value, p:ins[2].value});
         });
         localStorage.setItem('boulange_v8_mp', JSON.stringify(data));
+        sauvegarderVersCloud();
     }
 
-    function loadMP() {
-        const saved = JSON.parse(localStorage.getItem('boulange_v8_mp') || '[]');
-        saved.forEach(d => addRowMP(d));
-        if(saved.length === 0) addRowMP();
-        updateDrops();
-    }
-
-    // --- GESTION LABO RECETTE ---
     function updateDrops() {
         const refs = document.querySelectorAll('.mp-ref');
         const prix = document.querySelectorAll('.mp-prix');
-        let options = '<option value="">--Choisir--</option>';
-        refs.forEach((r, i) => {
-            if(r.value) options += `<option value="${prix[i].value}">${r.value} (${prix[i].value}€)</option>`;
-        });
-        document.querySelectorAll('.rec-select').forEach(sel => {
-            const current = sel.value;
-            sel.innerHTML = options;
-            sel.value = current;
-        });
+        let opt = '<option value="">--Choisir--</option>';
+        refs.forEach((r, i) => { if(r.value) opt += `<option value="${prix[i].value}">${r.value}</option>`; });
+        document.querySelectorAll('.rec-select').forEach(s => { const v = s.value; s.innerHTML = opt; s.value = v; });
     }
 
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
-        row.innerHTML = `
-            <td><select class="rec-select" onchange="calculerRecette()"></select></td>
-            <td><input type="number" class="rec-qte" oninput="calculerRecette()" value="0"></td>
-            <td class="rec-cout-ligne">0.00 €</td>
-            <td class="action-col"><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculerRecette()">❌</button></td>
-        `;
+        row.innerHTML = `<td><select class="rec-select" onchange="calculerRecette()"></select></td><td><input type="number" class="rec-qte" oninput="calculerRecette()" value="0"></td><td class="rec-cout-ligne">0€</td><td><button onclick="this.parentElement.parentElement.remove(); calculerRecette()">❌</button></td>`;
         updateDrops();
     }
 
     function calculerRecette() {
-        let totalCout = 0; let totalCru = 0;
+        let cout = 0, cru = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
-            const prixKg = parseFloat(tr.querySelector('.rec-select').value) || 0;
-            const qteG = parseFloat(tr.querySelector('.rec-qte').value) || 0;
-            const cout = (qteG / 1000) * prixKg;
-            tr.querySelector('.rec-cout-ligne').innerText = cout.toFixed(2) + " €";
-            totalCout += cout; totalCru += qteG;
+            const p = parseFloat(tr.querySelector('.rec-select').value) || 0;
+            const q = parseFloat(tr.querySelector('.rec-qte').value) || 0;
+            const c = (q/1000)*p; tr.querySelector('.rec-cout-ligne').innerText = c.toFixed(2)+"€";
+            cout += c; cru += q;
         });
-
-        document.getElementById('poids-cru').value = totalCru;
-        const pCuit = parseFloat(document.getElementById('poids-cuit').value) || totalCru;
-        document.getElementById('ratio-perte').innerText = totalCru > 0 ? ((totalCru - pCuit) / totalCru * 100).toFixed(1) : 0;
-
-        const tva = 1 + (parseFloat(document.getElementById('tva').value) / 100);
-        const margeVisee = parseFloat(document.getElementById('target-marge').value) / 100;
-        const pvMargeTTC = (totalCout / (1 - margeVisee)) * tva;
-        const pvCoeffTTC = (totalCout * 4.3) * tva;
-
-        document.getElementById('res-marge').innerText = pvMargeTTC.toFixed(2) + " € TTC";
-        document.getElementById('res-coeff').innerText = pvCoeffTTC.toFixed(2) + " € TTC";
-
-        document.getElementById('box-marge').classList.toggle('best', pvMargeTTC >= pvCoeffTTC);
-        document.getElementById('box-coeff').classList.toggle('best', pvCoeffTTC > pvMargeTTC);
-        return { cout: totalCout, pv: Math.max(pvMargeTTC, pvCoeffTTC), marge: (1 - (totalCout / (Math.max(pvMargeTTC, pvCoeffTTC)/tva)))*100 };
+        document.getElementById('poids-cru').value = cru;
+        const pCuit = parseFloat(document.getElementById('poids-cuit').value) || cru;
+        const pvM = (cout / 0.25) * 1.055; const pvC = (cout * 4.3) * 1.055;
+        document.getElementById('res-marge').innerText = pvM.toFixed(2)+" €";
+        document.getElementById('res-coeff').innerText = pvC.toFixed(2)+" €";
+        document.getElementById('box-marge').classList.toggle('best', pvM >= pvC);
+        document.getElementById('box-coeff').classList.toggle('best', pvC > pvM);
+        return { cout, marge: (1 - (cout/(pvM/1.055)))*100 };
     }
 
-    // --- ARCHIVAGE ---
     function archiverRecette() {
-        const nom = document.getElementById('rec-nom').value;
-        if(!nom) return alert("Donnez un nom à la recette");
-        const cat = prompt("Catégorie ? 1:Boulange, 2:Pâtis, 3:Voyage, 4:Ponctuel");
-        const targetIds = ["", "tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"];
-        const targetId = targetIds[cat] || "tab-ponctuel";
-
+        const nom = document.getElementById('rec-nom').value; if(!nom) return alert("Nom manquant");
+        const catNum = prompt("1:Boulange, 2:Patis, 3:Voyage");
+        const cats = ["", "tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"];
+        const id = cats[catNum] || "tab-fixe-boulange";
         const stats = calculerRecette();
         const clone = document.getElementById('tab-labo').cloneNode(true);
-        clone.querySelectorAll('.no-print, .btn, .action-col').forEach(el => el.remove());
-        clone.querySelectorAll('input, select').forEach(el => el.setAttribute('readonly', true));
-
-        const archiveData = {
-            id: Date.now(),
-            nom: nom,
-            html: clone.innerHTML,
-            cout: stats.cout,
-            marge: stats.marge
-        };
-
-        const archives = JSON.parse(localStorage.getItem('archives_' + targetId) || '[]');
-        archives.push(archiveData);
-        localStorage.setItem('archives_' + targetId, JSON.stringify(archives));
-        
-        loadArchives();
-        alert("Fiche archivée !");
+        clone.querySelectorAll('button, input').forEach(el => el.remove());
+        const data = JSON.parse(localStorage.getItem('archives_'+id) || '[]');
+        data.push({ id: Date.now(), nom, html: clone.innerHTML, cout: stats.cout, marge: stats.marge });
+        localStorage.setItem('archives_'+id, JSON.stringify(data));
+        loadArchives(); sauvegarderVersCloud();
     }
 
     function loadArchives() {
-        const ids = ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"];
-        ids.forEach(id => {
-            const container = document.querySelector(`#${id} .archive-list`);
-            container.innerHTML = "";
-            const data = JSON.parse(localStorage.getItem('archives_' + id) || '[]');
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "result-box";
-                div.style.marginBottom = "30px";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between"><h3>${item.nom}</h3><button class="btn btn-danger no-print" onclick="deleteArchive('${id}', ${item.id})">Supprimer</button></div>` + item.html;
-                container.appendChild(div);
+        ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"].forEach(id => {
+            const div = document.querySelector(`#${id} .archive-list`); div.innerHTML = "";
+            JSON.parse(localStorage.getItem('archives_'+id) || '[]').forEach(item => {
+                const card = document.createElement('div'); card.className = "result-box";
+                card.innerHTML = `<h3>${item.nom}</h3>` + item.html + `<button onclick="deleteArc('${id}', ${item.id})">Supprimer</button>`;
+                div.appendChild(card);
             });
         });
         updatePertesDrops();
     }
 
-    function deleteArchive(cat, id) {
-        if(confirm("Supprimer cette archive ?")) {
-            let data = JSON.parse(localStorage.getItem('archives_' + cat) || '[]');
-            data = data.filter(i => i.id !== id);
-            localStorage.setItem('archives_' + cat, JSON.stringify(data));
-            loadArchives();
-        }
+    function deleteArc(cat, id) {
+        let d = JSON.parse(localStorage.getItem('archives_'+cat) || '[]');
+        localStorage.setItem('archives_'+cat, JSON.stringify(d.filter(i => i.id !== id)));
+        loadArchives(); sauvegarderVersCloud();
     }
 
-    // --- GESTION DES PERTES ---
+    // --- PERTES ---
     function updatePertesDrops() {
-        const select = document.getElementById('perte-produit');
-        let options = "";
-        ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"].forEach(cat => {
-            const data = JSON.parse(localStorage.getItem('archives_' + cat) || '[]');
-            data.forEach(item => {
-                options += `<option value="${item.cout}">${item.nom}</option>`;
-            });
+        let opt = "";
+        ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"].forEach(id => {
+            JSON.parse(localStorage.getItem('archives_'+id) || '[]').forEach(i => { opt += `<option value="${i.cout}">${i.nom}</option>`; });
         });
-        select.innerHTML = options;
+        document.getElementById('perte-produit').innerHTML = opt;
     }
 
     function ajouterPerte() {
-        const date = document.getElementById('perte-date').value;
-        const select = document.getElementById('perte-produit');
-        const qte = parseFloat(document.getElementById('perte-qte').value) || 0;
-        if(!date || !select.value || qte <= 0) return alert("Saisie incomplète");
-
-        const perte = {
-            id: Date.now(),
-            date: date,
-            nom: select.options[select.selectedIndex].text,
-            valeur: (parseFloat(select.value) * qte).toFixed(2),
-            qte: qte
-        };
-
-        const pertes = JSON.parse(localStorage.getItem('boulange_pertes') || '[]');
-        pertes.push(perte);
-        localStorage.setItem('boulange_pertes', JSON.stringify(pertes));
-        renderPertes();
+        const p = { id: Date.now(), date: document.getElementById('perte-date').value, nom: document.getElementById('perte-produit').options[document.getElementById('perte-produit').selectedIndex].text, val: (parseFloat(document.getElementById('perte-produit').value) * parseFloat(document.getElementById('perte-qte').value)).toFixed(2), qte: document.getElementById('perte-qte').value };
+        const d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]'); d.push(p);
+        localStorage.setItem('boulange_pertes', JSON.stringify(d));
+        renderPertes(); sauvegarderVersCloud();
     }
 
     function renderPertes() {
-        const pertes = JSON.parse(localStorage.getItem('boulange_pertes') || '[]');
-        const tbody = document.getElementById('body-pertes');
-        tbody.innerHTML = "";
-        let total = 0;
-        pertes.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(p => {
-            const row = tbody.insertRow();
-            row.innerHTML = `<td>${p.date}</td><td>${p.nom}</td><td>${p.qte}</td><td>${p.valeur} €</td><td><button onclick="deletePerte(${p.id})">❌</button></td>`;
-            total += parseFloat(p.valeur);
-        });
-        document.getElementById('total-perte-valeur').innerText = total.toFixed(2) + " €";
-        updatePertesChart(pertes);
+        const d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]'); let h = "", t = 0;
+        d.forEach(p => { h += `<tr><td>${p.date}</td><td>${p.nom}</td><td>${p.qte}</td><td>${p.val}€</td><td><button onclick="delPer(${p.id})">❌</button></td></tr>`; t += parseFloat(p.val); });
+        document.getElementById('body-pertes').innerHTML = h; document.getElementById('total-perte-valeur').innerText = t.toFixed(2)+" €";
     }
 
-    function deletePerte(id) {
-        let pertes = JSON.parse(localStorage.getItem('boulange_pertes') || '[]');
-        pertes = pertes.filter(p => p.id !== id);
-        localStorage.setItem('boulange_pertes', JSON.stringify(pertes));
-        renderPertes();
+    function delPer(id) {
+        let d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]');
+        localStorage.setItem('boulange_pertes', JSON.stringify(d.filter(i => i.id !== id)));
+        renderPertes(); sauvegarderVersCloud();
     }
 
-    // --- GRAPHIQUES ---
-    function updateCharts() {
-        const ctx = document.getElementById('chartGlobalMarge').getContext('2d');
-        const labels = []; const marges = [];
-        let totalMarge = 0; let count = 0;
-
-        ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage", "tab-ponctuel"].forEach(cat => {
-            const data = JSON.parse(localStorage.getItem('archives_' + cat) || '[]');
-            data.forEach(item => {
-                labels.push(item.nom);
-                marges.push(item.marge.toFixed(1));
-                totalMarge += item.marge;
-                count++;
-            });
-        });
-
-        document.getElementById('stat-nb').innerText = count;
-        document.getElementById('stat-marge').innerText = count > 0 ? (totalMarge/count).toFixed(1) : 0;
-
-        if(chartAnalyse) chartAnalyse.destroy();
-        chartAnalyse = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: labels, datasets: [{ label: 'Marge (%)', data: marges, backgroundColor: '#d35400' }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
-        });
-    }
-
-    function updatePertesChart(pertes) {
-        const ctx = document.getElementById('chartPertes').getContext('2d');
-        const summary = {};
-        pertes.forEach(p => summary[p.nom] = (summary[p.nom] || 0) + parseFloat(p.valeur));
-        
-        if(chartPertes) chartPertes.destroy();
-        chartPertes = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(summary),
-                datasets: [{ data: Object.values(summary), backgroundColor: ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6'] }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
-
-    // --- INITIALISATION ---
     window.onload = () => {
-        loadMP();
-        loadArchives();
+        const s = JSON.parse(localStorage.getItem('boulange_v8_mp') || '[]'); s.forEach(d => addRowMP(d)); 
+        if(!s.length) addRowMP(); updateDrops(); loadArchives(); renderPertes();
         document.getElementById('perte-date').valueAsDate = new Date();
     };
 </script>
