@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro Cloud - Gestion Totale</title>
+    <title>Boulangerie Pro Cloud - V2.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { 
@@ -12,7 +12,6 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; margin: 0; padding: 10px; font-size: 13px; color: var(--secondary); }
         
-        /* Navigation */
         .nav-tabs { display: flex; flex-wrap: wrap; gap: 5px; background: var(--secondary); padding: 10px; border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 100; }
         .tab-btn { padding: 10px 15px; border: none; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 5px; transition: 0.3s; font-weight: bold; }
         .tab-btn.active { background: var(--primary); }
@@ -22,7 +21,7 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
         section { margin-bottom: 25px; border: 1px solid #eee; padding: 15px; border-radius: 8px; background: #fff; }
-        h2 { color: var(--primary); border-bottom: 2px solid var(--light); padding-bottom: 10px; margin-top: 0; }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--light); padding-bottom: 10px; margin: 0 0 15px 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: var(--light); }
@@ -38,7 +37,8 @@
         .result-box { background: #fdfefe; border-left: 5px solid var(--primary); padding: 15px; margin-top: 10px; border-radius: 4px; }
         .method-box { border: 2px solid #eee; padding: 15px; border-radius: 8px; text-align: center; position: relative; }
         .method-box.best { border-color: var(--gold); background: #fffdf2; }
-        .best-badge { position: absolute; top: -10px; right: 10px; background: var(--gold); color: black; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        .best-badge { position: absolute; top: -10px; right: 10px; background: var(--gold); color: black; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; display: none; }
+        .method-box.best .best-badge { display: block; }
 
         @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
         @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -65,7 +65,7 @@
                     <button class="btn btn-cloud" onclick="configurerCloud()">🔑 Configurer Connexion</button>
                     <button class="btn btn-save" onclick="chargerDepuisCloud()">🔄 Forcer Mise à jour Cloud -> Appareil</button>
                 </div>
-                <p id="cloud-status" style="margin-top:10px; font-size: 0.9em; color: var(--blue);">Statut : Local uniquement</p>
+                <p id="cloud-status" style="margin-top:10px; font-weight: bold; color: var(--secondary);">Statut : Local uniquement</p>
             </section>
 
             <h2>Base Ingrédients</h2>
@@ -97,10 +97,10 @@
                         </div>
                     </div>
                     <div class="grid-2" style="margin-top:15px">
-                        <div class="method-box" id="box-marge"><div class="best-badge">OPTIMAL</div><small>PV Marge</small><h2 id="res-marge">0.00 €</h2></div>
-                        <div class="method-box" id="box-coeff"><div class="best-badge">OPTIMAL</div><small>PV Coeff</small><h2 id="res-coeff">0.00 €</h2></div>
+                        <div class="method-box" id="box-marge"><div class="best-badge">OPTIMAL</div><small>PV Marge (75%)</small><h2 id="res-marge">0.00 €</h2></div>
+                        <div class="method-box" id="box-coeff"><div class="best-badge">OPTIMAL</div><small>PV Coeff (x4.3)</small><h2 id="res-coeff">0.00 €</h2></div>
                     </div>
-                    <button class="btn btn-cloud" style="width:100%; margin-top:20px" onclick="archiverRecette()">💾 Archiver & Sauvegarder Cloud</button>
+                    <button class="btn btn-cloud" style="width:100%; margin-top:20px; height: 50px; font-size: 1.1em;" onclick="archiverRecette()">💾 Archiver & Sauvegarder Cloud</button>
                 </section>
             </div>
         </div>
@@ -111,17 +111,17 @@
                 <section>
                     <label>Date :</label><input type="date" id="perte-date"><br><br>
                     <label>Produit :</label><select id="perte-produit"></select><br><br>
-                    <label>Quantité :</label><input type="number" id="perte-qte"><br><br>
-                    <button class="btn btn-add" onclick="ajouterPerte()">Enregistrer</button>
+                    <label>Quantité :</label><input type="number" id="perte-qte" placeholder="Nombre d'unités"><br><br>
+                    <button class="btn btn-add" onclick="ajouterPerte()">Enregistrer la perte</button>
                 </section>
-                <section><div class="result-box"><h3>Total Pertes</h3><h2 id="total-perte-valeur">0.00 €</h2></div></section>
+                <section><div class="result-box"><h3>Valeur Perdue ce mois</h3><h2 id="total-perte-valeur" style="color:var(--danger)">0.00 €</h2></div></section>
             </div>
             <table id="table-pertes"><thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Valeur</th><th>Action</th></tr></thead><tbody id="body-pertes"></tbody></table>
         </div>
 
         <div id="tab-analyse" class="tab-content">
             <h2>Analyse Catalogue</h2>
-            <div style="height:300px"><canvas id="chartGlobalMarge"></canvas></div>
+            <div style="height:400px; width: 100%;"><canvas id="chartGlobalMarge"></canvas></div>
         </div>
 
         <div id="tab-fixe-boulange" class="tab-content archive-zone"><h2>Boulangerie</h2><div class="archive-list"></div></div>
@@ -131,13 +131,19 @@
     </div>
 
 <script>
-    // --- CONFIG CLOUD (GitHub Gist) ---
+    // --- CLOUD CONFIG ---
     let GIST_ID = localStorage.getItem('gist_id') || "";
     let GIST_TOKEN = localStorage.getItem('gist_token') || "";
 
+    function updateCloudStatus(msg, color = "black") {
+        const el = document.getElementById('cloud-status');
+        el.innerText = "Statut : " + msg;
+        el.style.color = color;
+    }
+
     async function sauvegarderVersCloud() {
         if (!GIST_ID || !GIST_TOKEN) return;
-        document.getElementById('cloud-status').innerText = "☁️ Synchronisation en cours...";
+        updateCloudStatus("⏳ Synchronisation...", "orange");
         const data = {
             mp: localStorage.getItem('boulange_v8_mp'),
             pertes: localStorage.getItem('boulange_pertes'),
@@ -146,19 +152,22 @@
             voyage: localStorage.getItem('archives_tab-fixe-voyage')
         };
         try {
-            await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                 method: 'PATCH',
                 headers: { 'Authorization': `token ${GIST_TOKEN}` },
                 body: JSON.stringify({ files: { "boulangerie_data.json": { content: JSON.stringify(data) } } })
             });
-            document.getElementById('cloud-status').innerText = "✅ Synchronisé avec GitHub";
-        } catch (e) { document.getElementById('cloud-status').innerText = "❌ Erreur de synchro"; }
+            if(res.ok) updateCloudStatus("✅ Synchronisé avec GitHub", "green");
+            else updateCloudStatus("❌ Erreur de connexion Cloud (Vérifiez vos clés)", "red");
+        } catch (e) { updateCloudStatus("❌ Erreur Réseau", "red"); }
     }
 
     async function chargerDepuisCloud() {
         if (!GIST_ID || !GIST_TOKEN) return alert("Configurez le Cloud d'abord.");
+        updateCloudStatus("⏳ Chargement...", "orange");
         try {
             const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, { headers: { 'Authorization': `token ${GIST_TOKEN}` } });
+            if(!res.ok) throw new Error();
             const gist = await res.json();
             const data = JSON.parse(gist.files["boulangerie_data.json"].content);
             if(data.mp) localStorage.setItem('boulange_v8_mp', data.mp);
@@ -166,16 +175,21 @@
             if(data.boulange) localStorage.setItem('archives_tab-fixe-boulange', data.boulange);
             if(data.patis) localStorage.setItem('archives_tab-fixe-patis', data.patis);
             if(data.voyage) localStorage.setItem('archives_tab-fixe-voyage', data.voyage);
+            alert("Données récupérées !");
             location.reload();
-        } catch (e) { alert("Erreur de récupération Cloud."); }
+        } catch (e) { 
+            updateCloudStatus("❌ Erreur de récupération", "red");
+            alert("Impossible de charger les données. Vérifiez l'ID et le Token."); 
+        }
     }
 
     function configurerCloud() {
-        const id = prompt("ID du Gist :", GIST_ID);
-        const token = prompt("Token GitHub (ghp_...) :", GIST_TOKEN);
+        const id = prompt("Entrez votre ID de Gist GitHub :", GIST_ID);
+        const token = prompt("Entrez votre Token GitHub (ghp_...) :", GIST_TOKEN);
         if(id && token) {
-            localStorage.setItem('gist_id', id); localStorage.setItem('gist_token', token);
-            GIST_ID = id; GIST_TOKEN = token;
+            localStorage.setItem('gist_id', id.trim());
+            localStorage.setItem('gist_token', token.trim());
+            GIST_ID = id.trim(); GIST_TOKEN = token.trim();
             chargerDepuisCloud();
         }
     }
@@ -194,7 +208,7 @@
             <td><input type="text" value="${data.f}" onchange="saveMP()"></td>
             <td><input type="text" class="mp-ref" value="${data.r}" onchange="saveMP(); updateDrops()"></td>
             <td><input type="number" step="0.001" class="mp-prix" value="${data.p}" onchange="saveMP(); calculerRecette()"></td>
-            <td><button onclick="this.parentElement.parentElement.remove(); saveMP()">❌</button></td>
+            <td><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); saveMP()">❌</button></td>
         `;
     }
 
@@ -218,7 +232,7 @@
 
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
-        row.innerHTML = `<td><select class="rec-select" onchange="calculerRecette()"></select></td><td><input type="number" class="rec-qte" oninput="calculerRecette()" value="0"></td><td class="rec-cout-ligne">0€</td><td><button onclick="this.parentElement.parentElement.remove(); calculerRecette()">❌</button></td>`;
+        row.innerHTML = `<td><select class="rec-select" onchange="calculerRecette()"></select></td><td><input type="number" class="rec-qte" oninput="calculerRecette()" value="0"></td><td class="rec-cout-ligne">0€</td><td><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculerRecette()">❌</button></td>`;
         updateDrops();
     }
 
@@ -232,7 +246,8 @@
         });
         document.getElementById('poids-cru').value = cru;
         const pCuit = parseFloat(document.getElementById('poids-cuit').value) || cru;
-        const pvM = (cout / 0.25) * 1.055; const pvC = (cout * 4.3) * 1.055;
+        const pvM = (cout / 0.25) * 1.055; 
+        const pvC = (cout * 4.3) * 1.055;
         document.getElementById('res-marge').innerText = pvM.toFixed(2)+" €";
         document.getElementById('res-coeff').innerText = pvC.toFixed(2)+" €";
         document.getElementById('box-marge').classList.toggle('best', pvM >= pvC);
@@ -242,7 +257,7 @@
 
     function archiverRecette() {
         const nom = document.getElementById('rec-nom').value; if(!nom) return alert("Nom manquant");
-        const catNum = prompt("1:Boulange, 2:Patis, 3:Voyage");
+        const catNum = prompt("Où classer ? 1:Boulangerie, 2:Pâtisserie, 3:Voyage");
         const cats = ["", "tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"];
         const id = cats[catNum] || "tab-fixe-boulange";
         const stats = calculerRecette();
@@ -251,7 +266,7 @@
         const data = JSON.parse(localStorage.getItem('archives_'+id) || '[]');
         data.push({ id: Date.now(), nom, html: clone.innerHTML, cout: stats.cout, marge: stats.marge });
         localStorage.setItem('archives_'+id, JSON.stringify(data));
-        loadArchives(); sauvegarderVersCloud();
+        loadArchives(); sauvegarderVersCloud(); alert("Archivé !");
     }
 
     function loadArchives() {
@@ -259,7 +274,7 @@
             const div = document.querySelector(`#${id} .archive-list`); div.innerHTML = "";
             JSON.parse(localStorage.getItem('archives_'+id) || '[]').forEach(item => {
                 const card = document.createElement('div'); card.className = "result-box";
-                card.innerHTML = `<h3>${item.nom}</h3>` + item.html + `<button onclick="deleteArc('${id}', ${item.id})">Supprimer</button>`;
+                card.innerHTML = `<div style="display:flex; justify-content:space-between"><h3>${item.nom}</h3><button class="btn btn-danger" onclick="deleteArc('${id}', ${item.id})">Supprimer</button></div>` + item.html;
                 div.appendChild(card);
             });
         });
@@ -267,6 +282,7 @@
     }
 
     function deleteArc(cat, id) {
+        if(!confirm("Supprimer ?")) return;
         let d = JSON.parse(localStorage.getItem('archives_'+cat) || '[]');
         localStorage.setItem('archives_'+cat, JSON.stringify(d.filter(i => i.id !== id)));
         loadArchives(); sauvegarderVersCloud();
@@ -282,16 +298,29 @@
     }
 
     function ajouterPerte() {
-        const p = { id: Date.now(), date: document.getElementById('perte-date').value, nom: document.getElementById('perte-produit').options[document.getElementById('perte-produit').selectedIndex].text, val: (parseFloat(document.getElementById('perte-produit').value) * parseFloat(document.getElementById('perte-qte').value)).toFixed(2), qte: document.getElementById('perte-qte').value };
+        const select = document.getElementById('perte-produit');
+        if(!select.value) return alert("Archivez d'abord une recette");
+        const p = { 
+            id: Date.now(), 
+            date: document.getElementById('perte-date').value, 
+            nom: select.options[select.selectedIndex].text, 
+            val: (parseFloat(select.value) * parseFloat(document.getElementById('perte-qte').value)).toFixed(2), 
+            qte: document.getElementById('perte-qte').value 
+        };
         const d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]'); d.push(p);
         localStorage.setItem('boulange_pertes', JSON.stringify(d));
         renderPertes(); sauvegarderVersCloud();
     }
 
     function renderPertes() {
-        const d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]'); let h = "", t = 0;
-        d.forEach(p => { h += `<tr><td>${p.date}</td><td>${p.nom}</td><td>${p.qte}</td><td>${p.val}€</td><td><button onclick="delPer(${p.id})">❌</button></td></tr>`; t += parseFloat(p.val); });
-        document.getElementById('body-pertes').innerHTML = h; document.getElementById('total-perte-valeur').innerText = t.toFixed(2)+" €";
+        const d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]'); 
+        let h = "", t = 0;
+        d.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(p => { 
+            h += `<tr><td>${p.date}</td><td>${p.nom}</td><td>${p.qte}</td><td>${p.val}€</td><td><button class="btn btn-danger" onclick="delPer(${p.id})">❌</button></td></tr>`; 
+            t += parseFloat(p.val); 
+        });
+        document.getElementById('body-pertes').innerHTML = h; 
+        document.getElementById('total-perte-valeur').innerText = t.toFixed(2)+" €";
     }
 
     function delPer(id) {
@@ -300,10 +329,30 @@
         renderPertes(); sauvegarderVersCloud();
     }
 
+    // --- GRAPHIQUES ---
+    let myChart = null;
+    function updateCharts() {
+        const ctx = document.getElementById('chartGlobalMarge').getContext('2d');
+        const labels = [], values = [];
+        ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"].forEach(id => {
+            JSON.parse(localStorage.getItem('archives_'+id) || '[]').forEach(i => {
+                labels.push(i.nom); values.push(i.marge.toFixed(1));
+            });
+        });
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Marge %', data: values, backgroundColor: '#d35400' }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+    }
+
     window.onload = () => {
         const s = JSON.parse(localStorage.getItem('boulange_v8_mp') || '[]'); s.forEach(d => addRowMP(d)); 
-        if(!s.length) addRowMP(); updateDrops(); loadArchives(); renderPertes();
+        if(!s.length) addRowMP(); 
+        updateDrops(); loadArchives(); renderPertes();
         document.getElementById('perte-date').valueAsDate = new Date();
+        if(GIST_ID && GIST_TOKEN) updateCloudStatus("Connecté (Prêt à synchroniser)");
     };
 </script>
 </body>
