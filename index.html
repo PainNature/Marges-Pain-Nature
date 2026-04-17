@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro Cloud - Expert V2.1</title>
+    <title>Boulangerie Pro Cloud - Expert V2.3</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { 
@@ -35,12 +35,14 @@
         .btn-cloud { background: #8e44ad; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .result-box { background: #fdfefe; border-left: 5px solid var(--primary); padding: 15px; margin-top: 10px; border-radius: 4px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); }
+        .result-box { background: #fdfefe; border-left: 5px solid var(--primary); padding: 15px; margin-top: 10px; border-radius: 4px; }
         
         .method-box { border: 2px solid #eee; padding: 15px; border-radius: 8px; text-align: center; position: relative; transition: 0.3s; }
         .method-box.best { border-color: var(--gold); background: #fffdf2; transform: scale(1.02); }
         .best-badge { position: absolute; top: -10px; right: 10px; background: var(--gold); color: black; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; display: none; }
         .method-box.best .best-badge { display: block; }
+
+        .fiche-prod li { margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px; }
 
         @keyframes fadeIn { from {opacity: 0; transform: translateY(5px);} to {opacity: 1; transform: translateY(0);} }
         @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -83,7 +85,7 @@
             <div class="grid-2">
                 <section>
                     <h2>🧪 Composition Recette</h2>
-                    <input type="text" id="rec-nom" placeholder="Nom du produit (ex: Baguette Tradition)" style="font-size: 1.4em; margin-bottom:15px; width: 95%;">
+                    <input type="text" id="rec-nom" placeholder="Nom du produit" style="font-size: 1.4em; margin-bottom:15px; width: 95%;">
                     <table id="table-recette">
                         <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Coût HT</th><th>Action</th></tr></thead>
                         <tbody id="body-recette"></tbody>
@@ -108,26 +110,27 @@
                         <div style="margin-top:15px">
                             <label><strong>Taux de TVA :</strong></label>
                             <select id="cfg-tva" onchange="calculerRecette()" style="background: #fffdf2; border: 1px solid var(--gold); width: 100%;">
-                                <option value="1.055">5,5 % (Boulangerie / Pâtisserie classique)</option>
-                                <option value="1.10">10 % (Snacking / Vente immédiate)</option>
+                                <option value="1.055">5,5 % (Boulangerie / Pâtisserie)</option>
+                                <option value="1.10">10 % (Snacking / Immédiat)</option>
                                 <option value="1.20">20 % (Traiteur / Alcool)</option>
                             </select>
                         </div>
 
                         <div class="grid-2" style="margin-top:15px">
-                            <div><label>Poids Cru (g)</label><input type="number" id="poids-cru" readonly></div>
-                            <div><label>Poids Cuit (g)</label><input type="number" id="poids-cuit" oninput="calculerRecette()" placeholder="Poids final"></div>
+                            <div><label>Poids Cru (g)</label><input type="number" id="poids-cru" readonly style="background:#eee"></div>
+                            <div><label>Poids Cuit (g)</label><input type="number" id="poids-cuit" oninput="calculerRecette()" placeholder="Pesée finale"></div>
                         </div>
+                        <p id="info-cuisson" style="margin-top:10px; font-weight:bold; color:var(--blue); font-size:0.9em; display:none;"></p>
                     </div>
                     
                     <div class="grid-2" style="margin-top:15px">
                         <div class="method-box" id="box-marge">
-                            <div class="best-badge">CONSEILLÉ</div>
+                            <div class="best-badge">OPTIMAL</div>
                             <small id="label-marge">PV Marge (75%)</small>
                             <h2 id="res-marge">0.00 €</h2>
                         </div>
                         <div class="method-box" id="box-coeff">
-                            <div class="best-badge">CONSEILLÉ</div>
+                            <div class="best-badge">OPTIMAL</div>
                             <small id="label-coeff">PV Coeff (x4.3)</small>
                             <h2 id="res-coeff">0.00 €</h2>
                         </div>
@@ -141,11 +144,10 @@
             <h2>Gestion du Gaspillage</h2>
             <div class="grid-2">
                 <section>
-                    <h3>Saisir une perte</h3>
                     <label>Date :</label><input type="date" id="perte-date" style="margin-bottom:15px">
                     <label>Produit :</label><select id="perte-produit" style="margin-bottom:15px"></select>
-                    <label>Quantité jetée :</label><input type="number" id="perte-qte" placeholder="Nombre d'unités" style="margin-bottom:15px">
-                    <button class="btn btn-add" onclick="ajouterPerte()" style="width:100%">Valider l'enregistrement</button>
+                    <label>Quantité jetée :</label><input type="number" id="perte-qte" placeholder="Unités" style="margin-bottom:15px">
+                    <button class="btn btn-add" onclick="ajouterPerte()" style="width:100%">Enregistrer</button>
                 </section>
                 <section>
                     <div class="result-box" style="border-left-color: var(--danger);">
@@ -155,24 +157,24 @@
                 </section>
             </div>
             <table id="table-pertes">
-                <thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Valeur Perdue</th><th>Action</th></tr></thead>
+                <thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Valeur</th><th>Action</th></tr></thead>
                 <tbody id="body-pertes"></tbody>
             </table>
         </div>
 
         <div id="tab-analyse" class="tab-content">
-            <h2>Analyse de la rentabilité</h2>
+            <h2>Rentabilité par produit (%)</h2>
             <div style="height:400px; width: 100%;"><canvas id="chartGlobalMarge"></canvas></div>
         </div>
 
-        <div id="tab-fixe-boulange" class="tab-content archive-zone"><h2>Archives Boulangerie</h2><div class="archive-list"></div></div>
-        <div id="tab-fixe-patis" class="tab-content archive-zone"><h2>Archives Pâtisserie</h2><div class="archive-list"></div></div>
-        <div id="tab-fixe-voyage" class="tab-content archive-zone"><h2>Archives Voyage / Vienn.</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-boulange" class="tab-content"><h2>Archives Boulangerie</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-patis" class="tab-content"><h2>Archives Pâtisserie</h2><div class="archive-list"></div></div>
+        <div id="tab-fixe-voyage" class="tab-content"><h2>Archives Voyage</h2><div class="archive-list"></div></div>
 
     </div>
 
 <script>
-    // --- GITHUB CLOUD CONFIG ---
+    // --- GITHUB CLOUD ---
     let GIST_ID = localStorage.getItem('gist_id') || "";
     let GIST_TOKEN = localStorage.getItem('gist_token') || "";
 
@@ -216,14 +218,13 @@
             if(data.boulange) localStorage.setItem('archives_tab-fixe-boulange', data.boulange);
             if(data.patis) localStorage.setItem('archives_tab-fixe-patis', data.patis);
             if(data.voyage) localStorage.setItem('archives_tab-fixe-voyage', data.voyage);
-            alert("Données importées avec succès !");
             location.reload();
-        } catch (e) { alert("Erreur lors de la récupération Cloud."); }
+        } catch (e) { alert("Erreur récupération Cloud."); }
     }
 
     function configurerCloud() {
-        const id = prompt("Entrez votre ID de Gist GitHub :", GIST_ID);
-        const token = prompt("Entrez votre Token GitHub (ghp_...) :", GIST_TOKEN);
+        const id = prompt("ID de Gist :", GIST_ID);
+        const token = prompt("Token GitHub (ghp_...) :", GIST_TOKEN);
         if(id && token) {
             localStorage.setItem('gist_id', id.trim());
             localStorage.setItem('gist_token', token.trim());
@@ -237,7 +238,7 @@
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        event.currentTarget.classList.add('active');
+        if(event) event.currentTarget.classList.add('active');
     }
 
     function addRowMP(data = {f:'', r:'', p:''}) {
@@ -275,55 +276,84 @@
     }
 
     function calculerRecette() {
-        let coutTotal = 0, poidsCruTotal = 0;
+        let coutT = 0, cruT = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
             const p = parseFloat(tr.querySelector('.rec-select').value) || 0;
             const q = parseFloat(tr.querySelector('.rec-qte').value) || 0;
             const c = (q/1000)*p; tr.querySelector('.rec-cout-ligne').innerText = c.toFixed(2)+"€";
-            coutTotal += c; poidsCruTotal += q;
+            coutT += c; cruT += q;
         });
-        document.getElementById('poids-cru').value = poidsCruTotal;
+        document.getElementById('poids-cru').value = cruT;
+        const cuitT = parseFloat(document.getElementById('poids-cuit').value) || cruT;
 
-        const margeVisee = parseFloat(document.getElementById('cfg-marge').value) / 100 || 0.75;
-        const coeffVise = parseFloat(document.getElementById('cfg-coeff').value) || 4.3;
-        const tvaFacteur = parseFloat(document.getElementById('cfg-tva').value) || 1.055;
+        const info = document.getElementById('info-cuisson');
+        if(cuitT < cruT) {
+            info.style.display = "block";
+            info.innerText = `📉 Perte cuisson : -${((cruT-cuitT)/cruT*100).toFixed(1)}% | Rendement : ${(cuitT/cruT*100).toFixed(1)}%`;
+        } else { info.style.display = "none"; }
 
-        document.getElementById('label-marge').innerText = `PV Marge (${(margeVisee * 100).toFixed(0)}%)`;
-        document.getElementById('label-coeff').innerText = `PV Coeff (x${coeffVise})`;
+        const mVisee = parseFloat(document.getElementById('cfg-marge').value) / 100 || 0.75;
+        const cVise = parseFloat(document.getElementById('cfg-coeff').value) || 4.3;
+        const tva = parseFloat(document.getElementById('cfg-tva').value) || 1.055;
 
-        const pvMargeTTC = (coutTotal / (1 - margeVisee)) * tvaFacteur;
-        const pvCoeffTTC = (coutTotal * coeffVise) * tvaFacteur;
+        document.getElementById('label-marge').innerText = `PV Marge (${(mVisee*100).toFixed(0)}%)`;
+        document.getElementById('label-coeff').innerText = `PV Coeff (x${cVise})`;
 
-        document.getElementById('res-marge').innerText = pvMargeTTC.toFixed(2) + " €";
-        document.getElementById('res-coeff').innerText = pvCoeffTTC.toFixed(2) + " €";
+        const pvM = (coutT / (1 - mVisee)) * tva;
+        const pvC = (coutT * cVise) * tva;
 
-        document.getElementById('box-marge').classList.toggle('best', pvMargeTTC >= pvCoeffTTC);
-        document.getElementById('box-coeff').classList.toggle('best', pvCoeffTTC > pvMargeTTC);
+        document.getElementById('res-marge').innerText = pvM.toFixed(2) + " €";
+        document.getElementById('res-coeff').innerText = pvC.toFixed(2) + " €";
+        document.getElementById('box-marge').classList.toggle('best', pvM >= pvC);
+        document.getElementById('box-coeff').classList.toggle('best', pvC > pvM);
 
-        const margeReelle = (1 - (coutTotal / (Math.max(pvMargeTTC, pvCoeffTTC) / tvaFacteur))) * 100;
-        return { cout: coutTotal, marge: margeReelle };
+        const mReelle = (1 - (coutT / (Math.max(pvM, pvC) / tva))) * 100;
+        return { cout: coutT, marge: mReelle, cru: cruT, cuit: cuitT, tvaLabel: document.getElementById('cfg-tva').options[document.getElementById('cfg-tva').selectedIndex].text.split(' ')[0] };
     }
 
     function archiverRecette() {
         const nom = document.getElementById('rec-nom').value; if(!nom) return alert("Nom manquant");
-        const catNum = prompt("Classer dans : 1:Boulangerie, 2:Pâtisserie, 3:Voyage");
+        const catNum = prompt("1:Boulange, 2:Patis, 3:Voyage");
         const cats = ["", "tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"];
         const id = cats[catNum] || "tab-fixe-boulange";
-        const stats = calculerRecette();
-        const clone = document.getElementById('tab-labo').cloneNode(true);
-        clone.querySelectorAll('button, input, select').forEach(el => el.setAttribute('disabled', 'true'));
+        const res = calculerRecette();
+
+        let ingHTML = "";
+        document.querySelectorAll('#body-recette tr').forEach(tr => {
+            const n = tr.querySelector('.rec-select').options[tr.querySelector('.rec-select').selectedIndex].text;
+            const q = tr.querySelector('.rec-qte').value;
+            if(n !== "--Choisir--") ingHTML += `<li>${n} : <strong>${q}g</strong></li>`;
+        });
+
+        const fiche = `
+            <div class="fiche-prod" style="border:1px solid #ddd; padding:15px; border-radius:8px; background:#fff; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--primary); margin-bottom:10px;">
+                    <h3 style="margin:0; color:var(--primary);">${nom.toUpperCase()}</h3>
+                    <span style="font-size:0.8em; background:var(--light); padding:2px 8px; border-radius:4px;">TVA ${res.tvaLabel}</span>
+                </div>
+                <div class="grid-2">
+                    <ul style="list-style:none; padding:0; margin:0;">${ingHTML}</ul>
+                    <div style="background:var(--light); padding:10px; border-radius:4px; font-size:0.9em;">
+                        <p>⚖️ Cru : <strong>${res.cru}g</strong> | 🔥 Cuit : <strong>${res.cuit}g</strong></p>
+                        <hr>
+                        <p>💰 Coût : <strong>${res.cout.toFixed(2)}€</strong></p>
+                        <p style="color:var(--success)">📈 Marge : <strong>${res.marge.toFixed(1)}%</strong></p>
+                    </div>
+                </div>
+            </div>`;
+
         const data = JSON.parse(localStorage.getItem('archives_'+id) || '[]');
-        data.push({ id: Date.now(), nom, html: clone.innerHTML, cout: stats.cout, marge: stats.marge });
+        data.push({ id: Date.now(), nom, html: fiche, cout: res.cout, marge: res.marge });
         localStorage.setItem('archives_'+id, JSON.stringify(data));
-        loadArchives(); sauvegarderVersCloud(); alert("Fiche archivée !");
+        loadArchives(); sauvegarderVersCloud(); alert("Archivé !");
     }
 
     function loadArchives() {
         ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"].forEach(id => {
             const div = document.querySelector(`#${id} .archive-list`); div.innerHTML = "";
             JSON.parse(localStorage.getItem('archives_'+id) || '[]').forEach(item => {
-                const card = document.createElement('div'); card.className = "result-box";
-                card.innerHTML = `<div style="display:flex; justify-content:space-between"><h3>${item.nom}</h3><button class="btn btn-danger" onclick="deleteArc('${id}', ${item.id})">Supprimer</button></div>` + item.html;
+                const card = document.createElement('div');
+                card.innerHTML = `<div style="text-align:right"><button class="btn btn-danger" style="padding:2px 7px" onclick="deleteArc('${id}', ${item.id})">Supprimer</button></div>` + item.html;
                 div.appendChild(card);
             });
         });
@@ -331,13 +361,13 @@
     }
 
     function deleteArc(cat, id) {
-        if(!confirm("Confirmer la suppression ?")) return;
+        if(!confirm("Supprimer ?")) return;
         let d = JSON.parse(localStorage.getItem('archives_'+cat) || '[]');
         localStorage.setItem('archives_'+cat, JSON.stringify(d.filter(i => i.id !== id)));
         loadArchives(); sauvegarderVersCloud();
     }
 
-    // --- GESTION PERTES ---
+    // --- PERTES ---
     function updatePertesDrops() {
         let opt = "";
         ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"].forEach(id => {
@@ -347,17 +377,10 @@
     }
 
     function ajouterPerte() {
-        const select = document.getElementById('perte-produit');
-        if(!select.value) return alert("Créez des archives d'abord.");
+        const sel = document.getElementById('perte-produit');
         const qte = parseFloat(document.getElementById('perte-qte').value) || 0;
-        if(qte <= 0) return alert("Quantité invalide");
-        const p = { 
-            id: Date.now(), 
-            date: document.getElementById('perte-date').value, 
-            nom: select.options[select.selectedIndex].text, 
-            val: (parseFloat(select.value) * qte).toFixed(2), 
-            qte: qte 
-        };
+        if(!sel.value || qte <= 0) return alert("Saisie invalide");
+        const p = { id: Date.now(), date: document.getElementById('perte-date').value, nom: sel.options[sel.selectedIndex].text, val: (parseFloat(sel.value)*qte).toFixed(2), qte };
         const d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]'); d.push(p);
         localStorage.setItem('boulange_pertes', JSON.stringify(d));
         renderPertes(); sauvegarderVersCloud();
@@ -367,7 +390,7 @@
         const d = JSON.parse(localStorage.getItem('boulange_pertes') || '[]'); 
         let h = "", t = 0;
         d.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(p => { 
-            h += `<tr><td>${p.date}</td><td>${p.nom}</td><td>${p.qte}</td><td>${p.val}€</td><td><button class="btn btn-danger" onclick="delPer(${p.id})">❌</button></td></tr>`; 
+            h += `<tr><td>${p.date}</td><td>${p.nom}</td><td>${p.qte}</td><td>${p.val}€</td><td><button class="btn btn-danger" style="padding:2px 7px" onclick="delPer(${p.id})">❌</button></td></tr>`; 
             t += parseFloat(p.val); 
         });
         document.getElementById('body-pertes').innerHTML = h; 
@@ -384,16 +407,14 @@
     let myChart = null;
     function updateCharts() {
         const ctx = document.getElementById('chartGlobalMarge').getContext('2d');
-        const labels = [], values = [];
+        const labs = [], vals = [];
         ["tab-fixe-boulange", "tab-fixe-patis", "tab-fixe-voyage"].forEach(id => {
-            JSON.parse(localStorage.getItem('archives_'+id) || '[]').forEach(i => {
-                labels.push(i.nom); values.push(i.marge.toFixed(1));
-            });
+            JSON.parse(localStorage.getItem('archives_'+id) || '[]').forEach(i => { labs.push(i.nom); vals.push(i.marge.toFixed(1)); });
         });
         if(myChart) myChart.destroy();
         myChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels, datasets: [{ label: 'Marge % (Hors Taxes)', data: values, backgroundColor: '#d35400' }] },
+            data: { labels: labs, datasets: [{ label: 'Marge %', data: vals, backgroundColor: '#d35400' }] },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
