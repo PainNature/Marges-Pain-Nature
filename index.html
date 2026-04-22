@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro - V7.1</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Boulangerie Pro - Pilotage Finance V8</title>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --light: #ecf0f1; }
         body { font-family: sans-serif; background: #dfe6e9; margin: 0; padding: 10px; color: #333; }
         .nav-tabs { display: flex; gap: 2px; background: #95a5a6; padding: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
-        .tab-btn { padding: 10px; border: none; background: #34495e; color: white; cursor: pointer; font-weight: bold; white-space: nowrap; }
+        .tab-btn { padding: 12px; border: none; background: #34495e; color: white; cursor: pointer; font-weight: bold; white-space: nowrap; }
         .tab-btn.active { background: white; color: var(--primary); border-bottom: 3px solid var(--primary); }
-        .container { background: white; padding: 15px; border-radius: 0 0 12px 12px; }
+        .container { background: white; padding: 20px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .grid-labo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px; border: 1px solid #eee; text-align: left; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 90%; }
-        .btn { padding: 10px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 5px; }
-        .finance-box { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
-        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .res-item { background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .btn { padding: 10px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; }
+        .finance-card { background: #f8f9fa; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; }
+        .result-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .result-card { background: #fff; padding: 10px; border: 2px solid var(--primary); border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -43,64 +42,63 @@
     </div>
 
     <div id="tab-labo" class="tab-content">
-        <div id="capture-zone" class="grid-labo">
+        <div class="grid-labo">
             <div>
                 <h2>🧪 Composition</h2>
-                <input type="text" id="recipe-name" placeholder="Nom du produit" style="margin-bottom:10px; font-weight:bold;">
+                <input type="text" id="recipe-name" placeholder="Nom du produit" style="width:90%; margin-bottom:10px;">
                 <table><thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Action</th></tr></thead><tbody id="body-recette"></tbody></table>
                 <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
             </div>
             
-            <div class="finance-box">
+            <div class="finance-card">
                 <h3>📊 Pilotage Finance</h3>
-                <p>Poids total cru : <strong id="total-raw-weight">0</strong>g</p>
+                <p><strong>Poids total cru :</strong> <span id="res-total-raw">0</span>g</p>
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label>Pièce Crue (g)</label><input type="number" id="piece-cru" oninput="calculerFinance()"></div>
-                    <div><label>Pièce Cuite (g)</label><input type="number" id="piece-cuit" oninput="calculerFinance()"></div>
+                    <div><label>Poids 1 pièce CRUE (g)</label><input type="number" id="input-cru" oninput="calculerFinance()"></div>
+                    <div><label>Poids 1 pièce CUITE (g)</label><input type="number" id="input-cuit" oninput="calculerFinance()"></div>
                 </div>
                 <p>Taux de dessiccation : <strong id="res-dessication">0</strong>%</p>
-                
-                <hr>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label>TVA (%)</label>
-                        <select id="select-tva" onchange="calculerFinance()">
-                            <option value="1.055">5.5%</option><option value="1.10">10%</option><option value="1.20">20%</option>
-                        </select>
-                    </div>
-                    <div><label>Coût matière/pièce :</label><br><strong id="res-cost-unit">0.00</strong>€</div>
-                </div>
 
                 <div style="margin-top:10px;">
-                    <label>Coef Multiplicateur :</label> <input type="number" id="input-coef" value="3" step="0.1" oninput="calculerFinance()">
-                    <label>Marge Souhaitée (%) :</label> <input type="number" id="input-marge" value="66" step="1" oninput="calculerFinance()">
+                    <label>TVA (%)</label>
+                    <select id="select-tva" onchange="calculerFinance()">
+                        <option value="1.055">5.5%</option><option value="1.10">10%</option><option value="1.20">20%</option>
+                    </select>
                 </div>
 
-                <div style="margin-top:10px; background:#eee; padding:8px; border-radius:4px;">
-                    <input type="checkbox" id="check-emballage" onchange="toggleEmballage(); calculerFinance()">
-                    <label for="check-emballage">Ajouter un emballage ?</label>
-                    <div id="emballage-input-group" style="display:none; margin-top:5px;">
-                        <label>Prix emballage TTC (€) :</label>
-                        <input type="number" id="input-prix-emballage" value="0.00" step="0.01" oninput="calculerFinance()">
+                <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><label>Coef. Multiplicateur</label><input type="number" id="input-coef" value="3.0" step="0.1" oninput="calculerFinance()"></div>
+                    <div><label>% Marge brute</label><input type="number" id="input-marge" value="66" oninput="calculerFinance()"></div>
+                </div>
+
+                <div style="margin-top:15px; border-top:1px solid #ccc; padding-top:10px;">
+                    <input type="checkbox" id="check-emb" onchange="toggleEmb(); calculerFinance()"> <label>Ajouter Emballage</label>
+                    <div id="div-emb" style="display:none; margin-top:5px;">
+                        <input type="number" id="input-prix-emb" placeholder="Prix Emballage TTC (€)" oninput="calculerFinance()">
                     </div>
                 </div>
 
-                <div class="res-grid">
-                    <div class="res-item"><strong>Par Coefficient</strong><br>HT: <span id="res-coef-ht">0</span>€<br>TTC: <span id="res-coef-ttc">0</span>€</div>
-                    <div class="res-item"><strong>Par Marge</strong><br>HT: <span id="res-marge-ht">0</span>€<br>TTC: <span id="res-marge-ttc">0</span>€</div>
+                <div class="result-box">
+                    <div class="result-card">
+                        <strong>Par Coefficient</strong><br>
+                        HT: <span id="res-coef-ht">0</span>€<br>
+                        TTC: <span id="res-coef-ttc">0</span>€
+                    </div>
+                    <div class="result-card">
+                        <strong>Par Marge Brute</strong><br>
+                        HT: <span id="res-marge-ht">0</span>€<br>
+                        TTC: <span id="res-marge-ttc">0</span>€
+                    </div>
                 </div>
-                
-                <hr>
-                <select id="select-archive-metier"><option value="boulange">Boulangerie</option><option value="patis">Pâtisserie</option><option value="viennoiseries">Viennoiseries</option><option value="voyage">Gat. Voyages</option></select>
-                <button class="btn" style="background:var(--secondary)" onclick="archiverRecette()">💾 Archiver cette fiche</button>
             </div>
         </div>
     </div>
     
-    <div id="tab-boulange" class="tab-content"><h2>🥖 Archives</h2><div id="arch-boulange"></div></div>
-    <div id="tab-patis" class="tab-content"><h2>🍰 Archives</h2><div id="arch-patis"></div></div>
-    <div id="tab-viennoiseries" class="tab-content"><h2>🥐 Archives</h2><div id="arch-viennoiseries"></div></div>
-    <div id="tab-voyage" class="tab-content"><h2>🧁 Archives</h2><div id="arch-voyage"></div></div>
+    <div id="tab-boulange" class="tab-content"><h2>🥖 Archives Boulangerie</h2></div>
+    <div id="tab-patis" class="tab-content"><h2>🍰 Archives Pâtisserie</h2></div>
+    <div id="tab-viennoiseries" class="tab-content"><h2>🥐 Archives Viennoiseries</h2></div>
+    <div id="tab-voyage" class="tab-content"><h2>🧁 Archives Gat. Voyages</h2></div>
 </div>
 
 <script>
@@ -111,64 +109,56 @@
         document.getElementById('btn-' + id).classList.add('active');
     }
 
-    function toggleEmballage() {
-        const group = document.getElementById('emballage-input-group');
-        group.style.display = document.getElementById('check-emballage').checked ? 'block' : 'none';
+    function toggleEmb() {
+        document.getElementById('div-emb').style.display = document.getElementById('check-emb').checked ? 'block' : 'none';
     }
 
-    function addRowMP(data = {f:"", r:"", p:""}) {
+    function addRowMP() {
         const row = document.getElementById('body-mp').insertRow();
-        row.innerHTML = `<td><input type="text" class="mp-f" value="${data.f}"></td><td><input type="text" class="mp-r" value="${data.r}"></td><td><input type="number" class="mp-p" value="${data.p}"></td><td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>`;
+        row.innerHTML = `<td><input type="text" class="mp-f"></td><td><input type="text" class="mp-r"></td><td><input type="number" class="mp-p" oninput="calculerFinance()"></td><td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>`;
     }
 
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
-        const mp = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({r: tr.querySelector('.mp-r').value, p: tr.querySelector('.mp-p').value}));
-        let opts = mp.map(m => `<option value="${m.p}">${m.r}</option>`).join('');
-        row.innerHTML = `<td><select class="rec-select" onchange="calculerFinance()">${opts}</select></td><td><input type="number" class="rec-qte" oninput="calculerFinance()"></td><td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove(); calculerFinance()">❌</button></td>`;
+        const mps = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => `<option value="${tr.querySelector('.mp-p').value}">${tr.querySelector('.mp-r').value}</option>`).join('');
+        row.innerHTML = `<td><select class="rec-sel">${mps}</select></td><td><input type="number" class="rec-qte" oninput="calculerFinance()"></td><td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove(); calculerFinance()">❌</button></td>`;
     }
 
     function calculerFinance() {
-        let totalCost = 0; let totalWeight = 0;
+        // 1. Calcul total matière
+        let totalCost = 0, totalWeight = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
             const qte = parseFloat(tr.querySelector('.rec-qte').value) || 0;
-            const prix = parseFloat(tr.querySelector('.rec-select').value) || 0;
+            const prix = parseFloat(tr.querySelector('.rec-sel').value) || 0;
             totalCost += (qte / 1000) * prix;
             totalWeight += qte;
         });
-        document.getElementById('total-raw-weight').innerText = totalWeight.toFixed(0);
+        document.getElementById('res-total-raw').innerText = totalWeight;
 
-        const pcCru = parseFloat(document.getElementById('piece-cru').value) || 0;
-        const pcCuit = parseFloat(document.getElementById('piece-cuit').value) || 0;
-        
-        const dessic = pcCru > 0 ? ((pcCru - pcCuit) / pcCru * 100) : 0;
+        // 2. Dessiccation
+        const cru = parseFloat(document.getElementById('input-cru').value) || 0;
+        const cuit = parseFloat(document.getElementById('input-cuit').value) || 0;
+        const dessic = cru > 0 ? ((cru - cuit) / cru * 100) : 0;
         document.getElementById('res-dessication').innerText = dessic.toFixed(1);
 
-        const costUnit = (totalWeight > 0 && pcCru > 0) ? (totalCost / totalWeight * pcCru) : 0;
-        document.getElementById('res-cost-unit').innerText = costUnit.toFixed(2);
+        // 3. Coût de revient (basé sur le poids cru de la recette ramené à la pièce)
+        const costUnit = cru > 0 ? ((totalCost / totalWeight) * cru) : 0;
 
-        // Paramètres finance
+        // 4. Finance
         const tva = parseFloat(document.getElementById('select-tva').value);
-        const coef = parseFloat(document.getElementById('input-coef').value) || 1;
+        const coef = parseFloat(document.getElementById('input-coef').value) || 0;
         const marge = parseFloat(document.getElementById('input-marge').value) || 0;
-        
-        // Emballage
-        const emb = document.getElementById('check-emballage').checked ? (parseFloat(document.getElementById('input-prix-emballage').value) || 0) : 0;
+        const emb = document.getElementById('check-emb').checked ? (parseFloat(document.getElementById('input-prix-emb').value) || 0) : 0;
 
-        // Coef
+        // Calcul Coef
         const coefHT = costUnit * coef;
         document.getElementById('res-coef-ht').innerText = coefHT.toFixed(2);
         document.getElementById('res-coef-ttc').innerText = ((coefHT * tva) + emb).toFixed(2);
 
-        // Marge
+        // Calcul Marge
         const margeHT = costUnit / (1 - (marge / 100));
         document.getElementById('res-marge-ht').innerText = isFinite(margeHT) ? margeHT.toFixed(2) : "0";
         document.getElementById('res-marge-ttc').innerText = isFinite(margeHT) ? ((margeHT * tva) + emb).toFixed(2) : "0";
-    }
-
-    function archiverRecette() {
-        // ... Logique d'archivage identique ...
-        alert("Recette archivée !");
     }
 
     window.onload = () => { showTab('tab-labo'); };
