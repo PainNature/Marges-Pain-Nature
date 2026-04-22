@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro - V5.0 (Optimisé iPad/Mac)</title>
+    <title>Boulangerie Pro - V5.1</title>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --light: #ecf0f1; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #dfe6e9; margin: 0; padding: 10px; color: #333; }
         
-        /* Navigation & Surbrillance */
+        /* Navigation */
         .nav-tabs { display: flex; gap: 2px; background: #95a5a6; padding: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
         .tab-btn { padding: 12px 15px; border: none; background: #34495e; color: white; cursor: pointer; border-radius: 4px; font-weight: bold; min-height: 44px; white-space: nowrap; }
         .tab-btn:hover { background: #455a64; }
@@ -19,19 +19,20 @@
         .tab-content.active { display: block; }
         
         /* Layout */
-        .mp-checkbox-row { display: flex; gap: 10px; flex-wrap: wrap; }
-        .mp-checkbox-row label { font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; }
-        
         .grid-labo { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        @media (max-width: 850px) { .grid-labo { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .grid-labo { grid-template-columns: 1fr; } }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: var(--light); padding: 10px; text-align: left; }
         td { padding: 10px; border: 1px solid #eee; }
         input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 90%; }
+        
         .btn { padding: 12px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; min-height: 44px; }
         .stat-card { background: #f4f7f6; padding: 15px; border-radius: 8px; border-left: 5px solid var(--primary); }
         .cloud-panel { background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        
+        .mp-checkbox-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .mp-checkbox-row label { font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; }
     </style>
 </head>
 <body>
@@ -53,22 +54,20 @@
             <button class="btn" style="background:var(--success)" onclick="syncData()">🔄 Synchro</button>
         </div>
         <h2>Matières Premières</h2>
-        <table id="table-mp">
+        <table>
             <thead><tr><th>Fournisseur</th><th>Ref</th><th>Prix/kg</th><th>Métiers</th><th>Action</th></tr></thead>
             <tbody id="body-mp"></tbody>
         </table>
-        <button class="btn" style="background:var(--success); margin-top:10px" onclick="addRowMP()">+ Ajouter</button>
+        <button class="btn" style="background:var(--success); margin-top:10px" onclick="addRowMP()">+ Ajouter MP</button>
     </div>
 
     <div id="tab-labo" class="tab-content">
         <div class="grid-labo">
             <div>
-                <h2>Composition</h2>
+                <h2>🧪 Composition</h2>
                 <select id="select-metier-recette" onchange="updateRecipeDrops()">
-                    <option value="boulange">Boulangerie</option>
-                    <option value="patis">Pâtisserie</option>
-                    <option value="viennoiseries">Viennoiseries</option>
-                    <option value="voyage">Voyage</option>
+                    <option value="boulange">Boulangerie</option><option value="patis">Pâtisserie</option>
+                    <option value="viennoiseries">Viennoiseries</option><option value="voyage">Voyage</option>
                 </select>
                 <table>
                     <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Action</th></tr></thead>
@@ -78,7 +77,7 @@
             </div>
             
             <div class="stat-card">
-                <h3>Pilotage Finance</h3>
+                <h3>📊 Pilotage Finance</h3>
                 <p><strong>Total Cru : <span id="res-cru-tot">0</span>g</strong></p>
                 <label>Pièce Cru (g) :</label><input type="number" id="input-cru-piece" oninput="calculerRecette()">
                 <label>Pièce Cuit (g) :</label><input type="number" id="input-cuit-piece" oninput="calculerRecette()">
@@ -88,11 +87,18 @@
                 <select id="cfg-tva" onchange="calculerRecette()">
                     <option value="1.055">5,5%</option><option value="1.10">10%</option><option value="1.20">20%</option>
                 </select>
-                <label>Coût / PV :</label>
-                <select id="cfg-mode" onchange="calculerRecette()"><option value="coef">Coeff.</option><option value="marge">Marge %</option></select>
-                <input type="number" id="cfg-valeur" value="3.0" oninput="calculerRecette()">
-                <p>Coût unitaire : <strong id="res-cout-unit">0.00</strong>€</p>
-                <p>PV TTC : <strong id="res-pv-unit" style="font-size:1.5em; color:var(--primary)">0.00</strong>€</p>
+                <p>Coût unitaire : <strong><span id="res-cout-unit">0.00</span>€</strong></p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="background:#eef2f3; padding:10px; border-radius:6px">
+                        <label>Coef :</label><input type="number" id="input-coef" value="3.0" step="0.1" oninput="calculerRecette()">
+                        <p>PV TTC: <strong id="res-pvttc-coef" style="color:var(--primary)">0.00</strong>€</p>
+                    </div>
+                    <div style="background:#eef2f3; padding:10px; border-radius:6px">
+                        <label>Marge % :</label><input type="number" id="input-marge" value="66" oninput="calculerRecette()">
+                        <p>PV TTC: <strong id="res-pvttc-marge" style="color:var(--success)">0.00</strong>€</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -149,23 +155,23 @@
         });
         const cruPiece = parseFloat(document.getElementById('input-cru-piece').value) || 0;
         const cuitPiece = parseFloat(document.getElementById('input-cuit-piece').value) || 0;
-        
         const nbPieces = cruPiece > 0 ? (cruTotal / cruPiece) : 0;
         const dessiccation = (cruPiece > 0 && cruPiece > cuitPiece) ? ((cruPiece - cuitPiece) / cruPiece) * 100 : 0;
         const coutUnit = nbPieces > 0 ? (coutTotal / nbPieces) : 0;
         
         const tva = parseFloat(document.getElementById('cfg-tva').value);
-        const mode = document.getElementById('cfg-mode').value;
-        const val = parseFloat(document.getElementById('cfg-valeur').value) || 0;
+        const coef = parseFloat(document.getElementById('input-coef').value) || 0;
+        const marge = parseFloat(document.getElementById('input-marge').value) || 0;
         
-        let pvHT = (mode === 'coef') ? (coutUnit * val) : (coutUnit / (1 - (val / 100)));
-        const pvTTC = pvHT * tva;
+        const pvTTC_coef = (coutUnit * coef) * tva;
+        const pvTTC_marge = (coutUnit / (1 - (marge / 100))) * tva;
 
         document.getElementById('res-cru-tot').innerText = cruTotal.toFixed(0);
         document.getElementById('res-nb-pieces').innerText = nbPieces.toFixed(1);
         document.getElementById('res-dessiccation').innerText = dessiccation.toFixed(1);
         document.getElementById('res-cout-unit').innerText = coutUnit.toFixed(2);
-        document.getElementById('res-pv-unit').innerText = isFinite(pvTTC) ? pvTTC.toFixed(2) : "0.00";
+        document.getElementById('res-pvttc-coef').innerText = isFinite(pvTTC_coef) ? pvTTC_coef.toFixed(2) : "0.00";
+        document.getElementById('res-pvttc-marge').innerText = isFinite(pvTTC_marge) ? pvTTC_marge.toFixed(2) : "0.00";
     }
 
     function addRowRecette() {
