@@ -2,100 +2,101 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V4.3 (Gestion Pièce & Unitaire)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boulangerie Pro - V5.0 (Optimisé iPad/Mac)</title>
     <style>
-        :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --danger: #c0392b; --light: #ecf0f1; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #dfe6e9; margin: 0; padding: 15px; color: #333; }
-        .nav-tabs { display: flex; gap: 5px; background: var(--secondary); padding: 10px; border-radius: 8px 8px 0 0; }
-        .tab-btn { padding: 10px 15px; border: none; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        .tab-btn.active { background: var(--primary); }
-        .container { background: white; padding: 20px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --light: #ecf0f1; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #dfe6e9; margin: 0; padding: 10px; color: #333; }
+        
+        /* Navigation & Surbrillance */
+        .nav-tabs { display: flex; gap: 2px; background: #95a5a6; padding: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
+        .tab-btn { padding: 12px 15px; border: none; background: #34495e; color: white; cursor: pointer; border-radius: 4px; font-weight: bold; min-height: 44px; white-space: nowrap; }
+        .tab-btn:hover { background: #455a64; }
+        .tab-btn.active { background: white; color: var(--primary); border-bottom: 3px solid var(--primary); }
+        
+        .container { background: white; padding: 15px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        .cloud-panel { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        /* Layout */
+        .mp-checkbox-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .mp-checkbox-row label { font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; }
+        
         .grid-labo { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media (max-width: 850px) { .grid-labo { grid-template-columns: 1fr; } }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: var(--light); padding: 10px; text-align: left; }
-        td { padding: 8px; border: 1px solid #eee; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 95%; }
-        .btn { padding: 10px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
+        td { padding: 10px; border: 1px solid #eee; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 90%; }
+        .btn { padding: 12px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; min-height: 44px; }
         .stat-card { background: #f4f7f6; padding: 15px; border-radius: 8px; border-left: 5px solid var(--primary); }
+        .cloud-panel { background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     </style>
 </head>
 <body>
 
 <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab('tab-mp')">📦 Stocks & Cloud</button>
-    <button class="tab-btn" onclick="showTab('tab-labo')">🧪 Labo</button>
-    <button class="tab-btn" onclick="showTab('tab-fixe-boulange')">🥖 Boulange</button>
-    <button class="tab-btn" onclick="showTab('tab-fixe-patis')">🍰 Pâtis</button>
-    <button class="tab-btn" onclick="showTab('tab-fixe-viennoiseries')">🥐 Viennoiseries</button>
-    <button class="tab-btn" onclick="showTab('tab-fixe-voyage')">🧁 Voyage</button>
+    <button class="tab-btn" id="btn-tab-mp" onclick="showTab('tab-mp')">📦 Stocks</button>
+    <button class="tab-btn" id="btn-tab-labo" onclick="showTab('tab-labo')">🧪 Labo</button>
+    <button class="tab-btn" id="btn-tab-boulange" onclick="showTab('tab-fixe-boulange')">🥖 Boulange</button>
+    <button class="tab-btn" id="btn-tab-patis" onclick="showTab('tab-fixe-patis')">🍰 Pâtis</button>
+    <button class="tab-btn" id="btn-tab-viennoiseries" onclick="showTab('tab-fixe-viennoiseries')">🥐 Viennoiseries</button>
+    <button class="tab-btn" id="btn-tab-voyage" onclick="showTab('tab-fixe-voyage')">🧁 Voyage</button>
 </div>
 
 <div class="container">
-    <div id="tab-mp" class="tab-content active">
+    <div id="tab-mp" class="tab-content">
         <div class="cloud-panel">
-            <strong>Cloud Sync :</strong> <span id="status-text">Non configuré</span>
+            <strong>Cloud :</strong> <span id="status-text">Non configuré</span>
             <button class="btn" style="background:#8e44ad" onclick="configurerCloud()">⚙️ Config</button>
-            <button class="btn" style="background:var(--success)" onclick="syncData()">🔄 Forcer Synchro</button>
+            <button class="btn" style="background:var(--success)" onclick="syncData()">🔄 Synchro</button>
         </div>
         <h2>Matières Premières</h2>
         <table id="table-mp">
-            <thead><tr><th>Fournisseur</th><th>Ref</th><th>Prix/kg</th><th>Métiers (B,P,V,Voy)</th><th>Action</th></tr></thead>
+            <thead><tr><th>Fournisseur</th><th>Ref</th><th>Prix/kg</th><th>Métiers</th><th>Action</th></tr></thead>
             <tbody id="body-mp"></tbody>
         </table>
-        <button class="btn" style="background:var(--success); margin-top:10px" onclick="addRowMP()">+ Ajouter MP</button>
+        <button class="btn" style="background:var(--success); margin-top:10px" onclick="addRowMP()">+ Ajouter</button>
     </div>
 
     <div id="tab-labo" class="tab-content">
         <div class="grid-labo">
             <div>
-                <h2>🧪 Composition</h2>
+                <h2>Composition</h2>
                 <select id="select-metier-recette" onchange="updateRecipeDrops()">
                     <option value="boulange">Boulangerie</option>
                     <option value="patis">Pâtisserie</option>
                     <option value="viennoiseries">Viennoiseries</option>
                     <option value="voyage">Voyage</option>
                 </select>
-                <table id="table-recette">
+                <table>
                     <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Action</th></tr></thead>
                     <tbody id="body-recette"></tbody>
                 </table>
                 <button class="btn" style="background:var(--success); margin-top:10px" onclick="addRowRecette()">+ Ingrédient</button>
             </div>
+            
             <div class="stat-card">
-                <h3>📊 Pilotage Finance</h3>
-                
-                <label>Nombre de pièces :</label>
-                <input type="number" id="nb-pieces" value="1" min="1" oninput="calculerRecette()">
-                
-                <p>Poids Cru (Tot): <span id="res-cru-tot">0</span>g | <strong>Cru/pièce: <span id="res-cru-piece">0</span>g</strong></p>
-                <p>Poids Cuit (Tot): <input type="number" id="poids-cuit" style="width:60px" oninput="calculerRecette()">g | <strong>Cuit/pièce: <span id="res-cuit-piece">0</span>g</strong></p>
-                
+                <h3>Pilotage Finance</h3>
+                <p><strong>Total Cru : <span id="res-cru-tot">0</span>g</strong></p>
+                <label>Pièce Cru (g) :</label><input type="number" id="input-cru-piece" oninput="calculerRecette()">
+                <label>Pièce Cuit (g) :</label><input type="number" id="input-cuit-piece" oninput="calculerRecette()">
+                <p>Nb Pièces : <strong id="res-nb-pieces">0</strong> | Dessiccation : <strong id="res-dessiccation">0</strong>%</p>
                 <hr>
                 <label>TVA (%) :</label>
                 <select id="cfg-tva" onchange="calculerRecette()">
-                    <option value="1.055">5,5%</option>
-                    <option value="1.10">10%</option>
-                    <option value="1.20">20%</option>
+                    <option value="1.055">5,5%</option><option value="1.10">10%</option><option value="1.20">20%</option>
                 </select>
-                
-                <label style="margin-top:10px; display:block">Mode de Calcul :</label>
-                <select id="cfg-mode" onchange="calculerRecette()">
-                    <option value="coef">Coefficient Multiplicateur</option>
-                    <option value="marge">Marge Brute (%)</option>
-                </select>
-                <input type="number" id="cfg-valeur" value="3.0" step="0.1" oninput="calculerRecette()">
-                
-                <p>Coût revient unitaire : <strong id="res-cout-unit">0.00</strong> €</p>
-                <p>PV TTC unitaire : <strong id="res-pv-unit" style="font-size:1.5em; color:var(--primary)">0.00</strong> €</p>
-                <button class="btn" style="background:var(--secondary); width:100%" onclick="archiverRecette()">💾 Archiver</button>
+                <label>Coût / PV :</label>
+                <select id="cfg-mode" onchange="calculerRecette()"><option value="coef">Coeff.</option><option value="marge">Marge %</option></select>
+                <input type="number" id="cfg-valeur" value="3.0" oninput="calculerRecette()">
+                <p>Coût unitaire : <strong id="res-cout-unit">0.00</strong>€</p>
+                <p>PV TTC : <strong id="res-pv-unit" style="font-size:1.5em; color:var(--primary)">0.00</strong>€</p>
             </div>
         </div>
     </div>
-
+    
     <div id="tab-fixe-boulange" class="tab-content"><h2>Archives Boulangerie</h2></div>
     <div id="tab-fixe-patis" class="tab-content"><h2>Archives Pâtisserie</h2></div>
     <div id="tab-fixe-viennoiseries" class="tab-content"><h2>Archives Viennoiseries</h2></div>
@@ -105,19 +106,21 @@
 <script>
     function showTab(id) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+        localStorage.setItem('active_tab', id);
     }
 
-    // --- GESTION MP ---
     function addRowMP(data = {f:"", r:"", p:"", tags:[]}) {
         const row = document.getElementById('body-mp').insertRow();
         const tags = ["boulange", "patis", "viennoiseries", "voyage"];
-        const chk = tags.map(t => `<label style="font-size:9px"><input type="checkbox" class="mp-tag" value="${t}" ${data.tags.includes(t)?'checked':''}> ${t[0].toUpperCase()}</label>`).join('');
+        const chk = tags.map(t => `<label><input type="checkbox" class="mp-tag" value="${t}" ${data.tags.includes(t)?'checked':''}> ${t[0].toUpperCase()}</label>`).join('');
         row.innerHTML = `<td><input type="text" class="mp-fourn" value="${data.f}" onchange="saveMP()"></td>
                          <td><input type="text" class="mp-ref" value="${data.r}" onchange="saveMP()"></td>
                          <td><input type="number" class="mp-prix" value="${data.p}" onchange="saveMP()"></td>
-                         <td>${chk}</td>
-                         <td><button onclick="this.parentElement.parentElement.remove(); saveMP()">❌</button></td>`;
+                         <td><div class="mp-checkbox-row">${chk}</div></td>
+                         <td><button class="btn" style="padding:5px; background:var(--primary)" onclick="this.parentElement.parentElement.remove(); saveMP()">❌</button></td>`;
     }
 
     function saveMP() {
@@ -135,7 +138,6 @@
         syncData();
     }
 
-    // --- CALCULS LABO ---
     function calculerRecette() {
         let coutTotal = 0, cruTotal = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
@@ -145,32 +147,23 @@
             coutTotal += (qte / 1000) * prixKg;
             cruTotal += qte;
         });
-
-        const nbPieces = parseFloat(document.getElementById('nb-pieces').value) || 1;
-        const cuitTotal = parseFloat(document.getElementById('poids-cuit').value) || cruTotal;
+        const cruPiece = parseFloat(document.getElementById('input-cru-piece').value) || 0;
+        const cuitPiece = parseFloat(document.getElementById('input-cuit-piece').value) || 0;
         
-        // Calculs Unitaire
-        const coutUnit = coutTotal / nbPieces;
-        const cruParPiece = cruTotal / nbPieces;
-        const cuitParPiece = cuitTotal / nbPieces;
+        const nbPieces = cruPiece > 0 ? (cruTotal / cruPiece) : 0;
+        const dessiccation = (cruPiece > 0 && cruPiece > cuitPiece) ? ((cruPiece - cuitPiece) / cruPiece) * 100 : 0;
+        const coutUnit = nbPieces > 0 ? (coutTotal / nbPieces) : 0;
         
-        // Finances
         const tva = parseFloat(document.getElementById('cfg-tva').value);
         const mode = document.getElementById('cfg-mode').value;
         const val = parseFloat(document.getElementById('cfg-valeur').value) || 0;
         
-        let pvHT = 0;
-        if(mode === 'coef') {
-            pvHT = coutUnit * val;
-        } else {
-            pvHT = coutUnit / (1 - (val / 100));
-        }
-        
+        let pvHT = (mode === 'coef') ? (coutUnit * val) : (coutUnit / (1 - (val / 100)));
         const pvTTC = pvHT * tva;
 
-        document.getElementById('res-cru-tot').innerText = cruTotal;
-        document.getElementById('res-cru-piece').innerText = cruParPiece.toFixed(0);
-        document.getElementById('res-cuit-piece').innerText = (cuitTotal > 0 ? cuitParPiece.toFixed(0) : "0");
+        document.getElementById('res-cru-tot').innerText = cruTotal.toFixed(0);
+        document.getElementById('res-nb-pieces').innerText = nbPieces.toFixed(1);
+        document.getElementById('res-dessiccation').innerText = dessiccation.toFixed(1);
         document.getElementById('res-cout-unit').innerText = coutUnit.toFixed(2);
         document.getElementById('res-pv-unit').innerText = isFinite(pvTTC) ? pvTTC.toFixed(2) : "0.00";
     }
@@ -179,7 +172,7 @@
         const row = document.getElementById('body-recette').insertRow();
         row.innerHTML = `<td><select class="rec-select" onchange="calculerRecette()"></select></td>
                          <td><input type="number" class="rec-qte" oninput="calculerRecette()"></td>
-                         <td><button onclick="this.parentElement.parentElement.remove(); calculerRecette()">❌</button></td>`;
+                         <td><button class="btn" style="padding:5px; background:var(--primary)" onclick="this.parentElement.parentElement.remove(); calculerRecette()">❌</button></td>`;
         updateRecipeDrops();
     }
 
@@ -192,19 +185,10 @@
         document.querySelectorAll('.rec-select').forEach(s => { const old = s.value; s.innerHTML = opts; s.value = old; });
     }
 
-    // --- CLOUD SYNC ---
-    function configurerCloud() {
-        const id = prompt("Gist ID :");
-        const token = prompt("GitHub Token :");
-        if(id && token) { localStorage.setItem('gist_id', id); localStorage.setItem('gist_token', token); location.reload(); }
-    }
-
     async function syncData() {
         const token = localStorage.getItem('gist_token');
         const id = localStorage.getItem('gist_id');
         if(!token || !id) return;
-        const status = document.getElementById('status-text');
-        status.innerText = "Synchro...";
         try {
             const data = { mp: localStorage.getItem('data_mp') };
             await fetch(`https://api.github.com/gists/${id}`, {
@@ -212,15 +196,22 @@
                 headers: {'Authorization': `token ${token}`},
                 body: JSON.stringify({files: {"bakery_data.json": {content: JSON.stringify(data)}}})
             });
-            status.innerText = "Synchronisé !";
-        } catch(e) { status.innerText = "Erreur."; }
+            document.getElementById('status-text').innerText = "Synchronisé !";
+        } catch(e) { document.getElementById('status-text').innerText = "Erreur."; }
     }
 
     window.onload = () => {
         JSON.parse(localStorage.getItem('data_mp') || '[]').forEach(m => addRowMP(m));
-        if(localStorage.getItem('gist_id')) document.getElementById('status-text').innerText = "Connecté";
+        const lastTab = localStorage.getItem('active_tab') || 'tab-mp';
+        showTab(lastTab);
         updateRecipeDrops();
     };
+
+    function configurerCloud() {
+        const id = prompt("Gist ID :");
+        const token = prompt("GitHub Token :");
+        if(id && token) { localStorage.setItem('gist_id', id); localStorage.setItem('gist_token', token); location.reload(); }
+    }
 </script>
 </body>
 </html>
