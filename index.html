@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro - V9.0 (Cloud Ready)</title>
+    <title>Boulangerie Pro - V10.0 (Cloud Sync Control)</title>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --light: #ecf0f1; }
         body { font-family: sans-serif; background: #dfe6e9; margin: 0; padding: 10px; color: #333; }
@@ -21,7 +21,10 @@
         .finance-card { background: #f8f9fa; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; }
         .result-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .result-card { background: #fff; padding: 10px; border: 2px solid var(--primary); border-radius: 6px; }
-        .cloud-box { background: #e8f8f5; padding: 15px; border: 2px dashed var(--success); border-radius: 8px; margin-bottom: 20px; }
+        
+        /* Cloud Styling */
+        .cloud-control-panel { background: #f1f8ff; padding: 20px; border: 2px solid #3498db; border-radius: 10px; margin-bottom: 20px; }
+        .status-badge { display: inline-block; padding: 5px 10px; border-radius: 20px; background: #dff0d8; color: #3c763d; font-weight: bold; font-size: 0.9em; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -37,15 +40,20 @@
 
 <div class="container">
     <div id="tab-mp" class="tab-content">
-        <div class="cloud-box">
-            <h3>☁️ Contrôle Cloud (Sauvegarde)</h3>
-            <button class="btn" style="background:var(--success)" onclick="exportData()">💾 Exporter toutes les données (JSON)</button>
+        <div class="cloud-control-panel">
+            <h3>☁️ Centre de Contrôle Cloud</h3>
+            <p>Gérez la synchronisation de vos données (MP et Archives) entre vos appareils.</p>
+            <div id="sync-status" class="status-badge">Statut : Prêt</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <button class="btn" style="background:var(--success)" onclick="exportData()">💾 Exporter vers Cloud (JSON)</button>
+                <button class="btn" style="background:var(--secondary)" onclick="document.getElementById('file-input').click()">📂 Importer du Cloud</button>
+            </div>
             <input type="file" id="file-input" style="display:none" onchange="importData(event)">
-            <button class="btn" style="background:var(--secondary)" onclick="document.getElementById('file-input').click()">📂 Importer des données</button>
         </div>
+
         <h2>Gestion Matières Premières</h2>
         <table><thead><tr><th>Fournisseur</th><th>Ref</th><th>Prix/kg</th><th>Action</th></tr></thead><tbody id="body-mp"></tbody></table>
-        <button class="btn" style="background:var(--success)" onclick="addRowMP()">+ Ajouter MP</button>
+        <button class="btn" style="background:var(--success); width: auto;" onclick="addRowMP()">+ Ajouter MP</button>
     </div>
 
     <div id="tab-labo" class="tab-content">
@@ -110,12 +118,20 @@
 
 <script>
     // --- CLOUD CONTROLS ---
+    function updateSyncStatus() {
+        const lastSync = localStorage.getItem('last_sync') || "Aucune";
+        document.getElementById('sync-status').innerText = "Dernière synchro : " + lastSync;
+    }
+
     function exportData() {
         const data = { mp: localStorage.getItem('data_mp'), archives: localStorage.getItem('archives') };
         const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'boulangerie_data.json'; a.click();
+        a.href = url; a.download = 'boulangerie_data_' + new Date().getTime() + '.json'; a.click();
+        
+        localStorage.setItem('last_sync', new Date().toLocaleString());
+        updateSyncStatus();
     }
 
     function importData(event) {
@@ -125,6 +141,8 @@
             const data = JSON.parse(e.target.result);
             localStorage.setItem('data_mp', data.mp);
             localStorage.setItem('archives', data.archives);
+            localStorage.setItem('last_sync', new Date().toLocaleString());
+            alert("Données importées avec succès !");
             location.reload(); 
         };
         reader.readAsText(file);
@@ -183,7 +201,7 @@
         document.getElementById('res-marge-ttc').innerText = isFinite(margeHT) ? ((margeHT * tva) + emb).toFixed(2) : "0";
     }
 
-    window.onload = () => { showTab('tab-labo'); };
+    window.onload = () => { showTab('tab-labo'); updateSyncStatus(); };
 </script>
 </body>
 </html>
