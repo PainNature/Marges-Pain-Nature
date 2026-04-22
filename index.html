@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boulangerie Pro - V5.3</title>
+    <title>Boulangerie Pro - V5.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --light: #ecf0f1; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #dfe6e9; margin: 0; padding: 10px; color: #333; }
         
-        /* Navigation */
         .nav-tabs { display: flex; gap: 2px; background: #95a5a6; padding: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
         .tab-btn { padding: 12px 15px; border: none; background: #34495e; color: white; cursor: pointer; border-radius: 4px; font-weight: bold; min-height: 44px; white-space: nowrap; }
         .tab-btn.active { background: white; color: var(--primary); border-bottom: 3px solid var(--primary); }
@@ -18,19 +17,18 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        /* Layout */
         .grid-labo { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         @media (max-width: 900px) { .grid-labo { grid-template-columns: 1fr; } }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: var(--light); padding: 10px; text-align: left; }
         td { padding: 10px; border: 1px solid #eee; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 90%; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 90%; }
         
         .btn { padding: 12px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; min-height: 44px; margin-top: 5px; }
         .stat-card { background: #f4f7f6; padding: 15px; border-radius: 8px; border-left: 5px solid var(--primary); }
         .archive-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: #fff; }
-        .mp-checkbox-row { display: flex; gap: 5px; flex-wrap: wrap; font-size: 10px; }
+        .choice-box { background: #eef2f3; padding: 8px; border-radius: 6px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -55,7 +53,7 @@
         <div id="capture-zone" class="grid-labo">
             <div>
                 <h2>🧪 Composition</h2>
-                <input type="text" id="recipe-name" placeholder="Nom de la recette" style="width:90%; margin-bottom:10px; font-weight:bold;">
+                <input type="text" id="recipe-name" placeholder="Nom du produit" style="width:90%; margin-bottom:10px; font-weight:bold;">
                 <select id="select-metier-recette" onchange="updateRecipeDrops()" style="width:95%; margin-bottom:10px;">
                     <option value="boulange">Boulangerie</option><option value="patis">Pâtisserie</option>
                     <option value="viennoiseries">Viennoiseries</option><option value="voyage">Voyage</option>
@@ -68,17 +66,23 @@
             </div>
             
             <div class="stat-card">
-                <h3>📊 Finance & Export</h3>
+                <h3>📊 Pilotage Finance</h3>
                 <label>Pièce Cru (g) :</label><input type="number" id="input-cru-piece" oninput="calculerRecette()">
-                <label>Pièce Cuit (g) :</label><input type="number" id="input-cuit-piece" oninput="calculerRecette()">
                 <p>Coût unitaire : <strong><span id="res-cout-unit">0.00</span>€</strong></p>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                    <div><label>Coef:</label><input type="number" id="input-coef" value="3.0" step="0.1" oninput="calculerRecette()"></div>
-                    <div><label>Marge %:</label><input type="number" id="input-marge" value="66" oninput="calculerRecette()"></div>
+                <div class="choice-box">
+                    <input type="radio" name="method" value="coef" id="use-coef" checked>
+                    <label for="use-coef"><strong>Coef Multiplicateur :</strong></label>
+                    <input type="number" id="input-coef" value="3.0" step="0.1" oninput="calculerRecette()" style="width:50px">
+                    <p>PV TTC : <strong id="res-pvttc-coef" style="color:var(--primary)">0.00</strong>€</p>
                 </div>
-                <p>PV TTC Coef: <strong id="res-pvttc-coef" style="color:var(--primary)">0.00</strong>€</p>
-                <p>PV TTC Marge: <strong id="res-pvttc-marge" style="color:var(--success)">0.00</strong>€</p>
+
+                <div class="choice-box">
+                    <input type="radio" name="method" value="marge" id="use-marge">
+                    <label for="use-marge"><strong>Marge Brute (%) :</strong></label>
+                    <input type="number" id="input-marge" value="66" step="1" oninput="calculerRecette()" style="width:50px">
+                    <p>PV TTC : <strong id="res-pvttc-marge" style="color:var(--success)">0.00</strong>€</p>
+                </div>
                 
                 <hr>
                 <label>Archiver dans :</label>
@@ -86,7 +90,7 @@
                     <option value="boulange">Boulangerie</option><option value="patis">Pâtisserie</option>
                     <option value="viennoiseries">Viennoiseries</option><option value="voyage">Voyage</option>
                 </select>
-                <button class="btn" style="background:var(--secondary); width:100%" onclick="archiverRecette()">💾 Archiver</button>
+                <button class="btn" style="background:var(--secondary); width:100%" onclick="archiverRecette()">💾 Archiver sélectionné</button>
                 <button class="btn" style="background:#3498db; width:100%" onclick="exportJPEG()">📸 Exporter JPEG</button>
             </div>
         </div>
@@ -99,7 +103,6 @@
 </div>
 
 <script>
-    // Navigation
     function showTab(id) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -108,15 +111,14 @@
         localStorage.setItem('active_tab', id);
     }
 
-    // Gestion Stocks MP
     function addRowMP(data = {f:"", r:"", p:"", tags:[]}) {
         const row = document.getElementById('body-mp').insertRow();
         const tags = ["boulange", "patis", "viennoiseries", "voyage"];
-        const chk = tags.map(t => `<label><input type="checkbox" class="mp-tag" value="${t}" ${data.tags.includes(t)?'checked':''}> ${t[0].toUpperCase()}</label>`).join('');
+        const chk = tags.map(t => `<label style="font-size:10px"><input type="checkbox" class="mp-tag" value="${t}" ${data.tags.includes(t)?'checked':''}> ${t[0].toUpperCase()}</label>`).join('');
         row.innerHTML = `<td><input type="text" class="mp-fourn" value="${data.f}" onchange="saveMP()"></td>
                          <td><input type="text" class="mp-ref" value="${data.r}" onchange="saveMP()"></td>
                          <td><input type="number" class="mp-prix" value="${data.p}" onchange="saveMP()"></td>
-                         <td><div class="mp-checkbox-row">${chk}</div></td>
+                         <td>${chk}</td>
                          <td><button class="btn" style="padding:5px; background:var(--primary)" onclick="this.parentElement.parentElement.remove(); saveMP()">❌</button></td>`;
     }
 
@@ -134,7 +136,6 @@
         updateRecipeDrops();
     }
 
-    // Gestion Recettes
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
         row.innerHTML = `<td><select class="rec-select" onchange="calculerRecette()"></select></td>
@@ -153,32 +154,32 @@
     }
 
     function calculerRecette() {
-        let coutTotal = 0;
+        let coutTotal = 0, totalCru = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
             const qte = parseFloat(tr.querySelector('.rec-qte').value) || 0;
             const prix = parseFloat(tr.querySelector('.rec-select').value) || 0;
             coutTotal += (qte / 1000) * prix;
+            totalCru += qte;
         });
-        const cruPiece = parseFloat(document.getElementById('input-cru-piece').value) || 1;
-        const coutUnit = coutTotal / (cruPiece > 0 ? (document.querySelectorAll('#body-recette tr').length > 0 ? (coutTotal / (parseFloat(document.getElementById('input-cru-piece').value) || 1)) : 1) : 1);
         
-        // Calcul simple unitaire
-        const totalCru = Array.from(document.querySelectorAll('.rec-qte')).reduce((sum, i) => sum + (parseFloat(i.value)||0), 0);
-        const unitCost = (totalCru > 0 && cruPiece > 0) ? (coutTotal / (totalCru / cruPiece)) : 0;
+        const cruPiece = parseFloat(document.getElementById('input-cru-piece').value) || 0;
+        const unitCost = (cruPiece > 0) ? (coutTotal / (totalCru / cruPiece)) : 0;
         
         document.getElementById('res-cout-unit').innerText = unitCost.toFixed(2);
         document.getElementById('res-pvttc-coef').innerText = (unitCost * parseFloat(document.getElementById('input-coef').value) * 1.055).toFixed(2);
         document.getElementById('res-pvttc-marge').innerText = (unitCost / (1 - (parseFloat(document.getElementById('input-marge').value)/100)) * 1.055).toFixed(2);
     }
 
-    // Archivage
     function archiverRecette() {
         const nom = document.getElementById('recipe-name').value || "Recette";
         const metier = document.getElementById('select-archive-metier').value;
+        const method = document.querySelector('input[name="method"]:checked').value;
+        const pv = (method === 'coef') ? document.getElementById('res-pvttc-coef').innerText : document.getElementById('res-pvttc-marge').innerText;
+        
         const archives = JSON.parse(localStorage.getItem('archives') || '[]');
-        archives.push({ nom, cout: document.getElementById('res-cout-unit').innerText, pv: document.getElementById('res-pvttc-coef').innerText, metier, date: new Date().toLocaleDateString() });
+        archives.push({ nom, cout: document.getElementById('res-cout-unit').innerText, pv, metier, date: new Date().toLocaleDateString() });
         localStorage.setItem('archives', JSON.stringify(archives));
-        alert("Recette archivée !");
+        alert("Archivé avec prix basé sur : " + method.toUpperCase());
         renderArchives();
     }
 
@@ -191,7 +192,6 @@
         });
     }
 
-    // Export
     function exportJPEG() {
         html2canvas(document.querySelector("#capture-zone")).then(canvas => {
             const link = document.createElement('a');
