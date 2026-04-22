@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - Système Complet V4.2</title>
+    <title>Boulangerie Pro - V4.3 (Gestion Pièce & Unitaire)</title>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --danger: #c0392b; --light: #ecf0f1; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #dfe6e9; margin: 0; padding: 15px; color: #333; }
@@ -67,7 +67,13 @@
             </div>
             <div class="stat-card">
                 <h3>📊 Pilotage Finance</h3>
-                <p>Poids Cru: <span id="res-cru">0</span>g | Cuit: <input type="number" id="poids-cuit" style="width:60px" oninput="calculerRecette()">g</p>
+                
+                <label>Nombre de pièces :</label>
+                <input type="number" id="nb-pieces" value="1" min="1" oninput="calculerRecette()">
+                
+                <p>Poids Cru (Tot): <span id="res-cru-tot">0</span>g | <strong>Cru/pièce: <span id="res-cru-piece">0</span>g</strong></p>
+                <p>Poids Cuit (Tot): <input type="number" id="poids-cuit" style="width:60px" oninput="calculerRecette()">g | <strong>Cuit/pièce: <span id="res-cuit-piece">0</span>g</strong></p>
+                
                 <hr>
                 <label>TVA (%) :</label>
                 <select id="cfg-tva" onchange="calculerRecette()">
@@ -83,8 +89,8 @@
                 </select>
                 <input type="number" id="cfg-valeur" value="3.0" step="0.1" oninput="calculerRecette()">
                 
-                <p>Coût revient (Cuit): <strong id="res-cout-kg">0</strong> €/kg</p>
-                <p>PV TTC : <strong id="res-pv" style="font-size:1.5em; color:var(--primary)">0.00</strong> €</p>
+                <p>Coût revient unitaire : <strong id="res-cout-unit">0.00</strong> €</p>
+                <p>PV TTC unitaire : <strong id="res-pv-unit" style="font-size:1.5em; color:var(--primary)">0.00</strong> €</p>
                 <button class="btn" style="background:var(--secondary); width:100%" onclick="archiverRecette()">💾 Archiver</button>
             </div>
         </div>
@@ -140,26 +146,33 @@
             cruTotal += qte;
         });
 
+        const nbPieces = parseFloat(document.getElementById('nb-pieces').value) || 1;
         const cuitTotal = parseFloat(document.getElementById('poids-cuit').value) || cruTotal;
-        const coutKgCuit = (cuitTotal > 0) ? (coutTotal / (cuitTotal / 1000)) : coutTotal;
         
+        // Calculs Unitaire
+        const coutUnit = coutTotal / nbPieces;
+        const cruParPiece = cruTotal / nbPieces;
+        const cuitParPiece = cuitTotal / nbPieces;
+        
+        // Finances
         const tva = parseFloat(document.getElementById('cfg-tva').value);
         const mode = document.getElementById('cfg-mode').value;
         const val = parseFloat(document.getElementById('cfg-valeur').value) || 0;
         
         let pvHT = 0;
         if(mode === 'coef') {
-            pvHT = coutTotal * val;
+            pvHT = coutUnit * val;
         } else {
-            // PV = Coût / (1 - Marge%)
-            pvHT = coutTotal / (1 - (val / 100));
+            pvHT = coutUnit / (1 - (val / 100));
         }
         
         const pvTTC = pvHT * tva;
 
-        document.getElementById('res-cru').innerText = cruTotal;
-        document.getElementById('res-cout-kg').innerText = cuitTotal > 0 ? coutKgCuit.toFixed(2) : "0.00";
-        document.getElementById('res-pv').innerText = isFinite(pvTTC) ? pvTTC.toFixed(2) : "0.00";
+        document.getElementById('res-cru-tot').innerText = cruTotal;
+        document.getElementById('res-cru-piece').innerText = cruParPiece.toFixed(0);
+        document.getElementById('res-cuit-piece').innerText = (cuitTotal > 0 ? cuitParPiece.toFixed(0) : "0");
+        document.getElementById('res-cout-unit').innerText = coutUnit.toFixed(2);
+        document.getElementById('res-pv-unit').innerText = isFinite(pvTTC) ? pvTTC.toFixed(2) : "0.00";
     }
 
     function addRowRecette() {
