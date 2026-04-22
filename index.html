@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V4.0 Complète</title>
+    <title>Boulangerie Pro - Système Complet V4.2</title>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --danger: #c0392b; --light: #ecf0f1; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #dfe6e9; margin: 0; padding: 15px; color: #333; }
@@ -18,7 +18,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: var(--light); padding: 10px; text-align: left; }
         td { padding: 8px; border: 1px solid #eee; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 90%; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 95%; }
         .btn { padding: 10px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
         .stat-card { background: #f4f7f6; padding: 15px; border-radius: 8px; border-left: 5px solid var(--primary); }
     </style>
@@ -66,25 +66,34 @@
                 <button class="btn" style="background:var(--success); margin-top:10px" onclick="addRowRecette()">+ Ingrédient</button>
             </div>
             <div class="stat-card">
-                <h3>📊 Analyse Rentabilité</h3>
-                <p>Poids Cru: <span id="res-cru">0</span>g</p>
-                <label>Poids Cuit (g):</label>
-                <input type="number" id="poids-cuit" oninput="calculerRecette()">
+                <h3>📊 Pilotage Finance</h3>
+                <p>Poids Cru: <span id="res-cru">0</span>g | Cuit: <input type="number" id="poids-cuit" style="width:60px" oninput="calculerRecette()">g</p>
                 <hr>
-                <label>Coefficient :</label>
-                <input type="number" id="cfg-coef" value="3.0" step="0.1" oninput="calculerRecette()">
-                <p>Coût de revient (Cuit): <strong id="res-cout-kg">0</strong> €/kg</p>
-                <p>PV TTC : <strong id="res-pv" style="font-size:1.4em; color:var(--primary)">0</strong> €</p>
-                <p>Marge Brute : <strong id="res-marge">0</strong> %</p>
-                <button class="btn" style="background:var(--secondary); width:100%" onclick="archiverRecette()">💾 Archiver Recette</button>
+                <label>TVA (%) :</label>
+                <select id="cfg-tva" onchange="calculerRecette()">
+                    <option value="1.055">5,5%</option>
+                    <option value="1.10">10%</option>
+                    <option value="1.20">20%</option>
+                </select>
+                
+                <label style="margin-top:10px; display:block">Mode de Calcul :</label>
+                <select id="cfg-mode" onchange="calculerRecette()">
+                    <option value="coef">Coefficient Multiplicateur</option>
+                    <option value="marge">Marge Brute (%)</option>
+                </select>
+                <input type="number" id="cfg-valeur" value="3.0" step="0.1" oninput="calculerRecette()">
+                
+                <p>Coût revient (Cuit): <strong id="res-cout-kg">0</strong> €/kg</p>
+                <p>PV TTC : <strong id="res-pv" style="font-size:1.5em; color:var(--primary)">0.00</strong> €</p>
+                <button class="btn" style="background:var(--secondary); width:100%" onclick="archiverRecette()">💾 Archiver</button>
             </div>
         </div>
     </div>
 
-    <div id="tab-fixe-boulange" class="tab-content"><h2>Archives Boulangerie</h2><div class="archive-list"></div></div>
-    <div id="tab-fixe-patis" class="tab-content"><h2>Archives Pâtisserie</h2><div class="archive-list"></div></div>
-    <div id="tab-fixe-viennoiseries" class="tab-content"><h2>Archives Viennoiseries</h2><div class="archive-list"></div></div>
-    <div id="tab-fixe-voyage" class="tab-content"><h2>Archives Voyage</h2><div class="archive-list"></div></div>
+    <div id="tab-fixe-boulange" class="tab-content"><h2>Archives Boulangerie</h2></div>
+    <div id="tab-fixe-patis" class="tab-content"><h2>Archives Pâtisserie</h2></div>
+    <div id="tab-fixe-viennoiseries" class="tab-content"><h2>Archives Viennoiseries</h2></div>
+    <div id="tab-fixe-voyage" class="tab-content"><h2>Archives Voyage</h2></div>
 </div>
 
 <script>
@@ -93,11 +102,11 @@
         document.getElementById(id).classList.add('active');
     }
 
-    // --- LOGIQUE MP & SYNC ---
+    // --- GESTION MP ---
     function addRowMP(data = {f:"", r:"", p:"", tags:[]}) {
         const row = document.getElementById('body-mp').insertRow();
         const tags = ["boulange", "patis", "viennoiseries", "voyage"];
-        const chk = tags.map(t => `<label style="font-size:10px"><input type="checkbox" class="mp-tag" value="${t}" ${data.tags.includes(t)?'checked':''}> ${t[0].toUpperCase()}</label>`).join('');
+        const chk = tags.map(t => `<label style="font-size:9px"><input type="checkbox" class="mp-tag" value="${t}" ${data.tags.includes(t)?'checked':''}> ${t[0].toUpperCase()}</label>`).join('');
         row.innerHTML = `<td><input type="text" class="mp-fourn" value="${data.f}" onchange="saveMP()"></td>
                          <td><input type="text" class="mp-ref" value="${data.r}" onchange="saveMP()"></td>
                          <td><input type="number" class="mp-prix" value="${data.p}" onchange="saveMP()"></td>
@@ -120,7 +129,7 @@
         syncData();
     }
 
-    // --- LOGIQUE LABO (Cru/Cuit/Rentabilité) ---
+    // --- CALCULS LABO ---
     function calculerRecette() {
         let coutTotal = 0, cruTotal = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
@@ -132,19 +141,25 @@
         });
 
         const cuitTotal = parseFloat(document.getElementById('poids-cuit').value) || cruTotal;
-        const coef = parseFloat(document.getElementById('cfg-coef').value) || 1;
-        const tva = 1.055; 
-        
-        // Calculs
         const coutKgCuit = (cuitTotal > 0) ? (coutTotal / (cuitTotal / 1000)) : coutTotal;
-        const pvTTC = (coutTotal * coef) * tva;
-        const pvHT = pvTTC / tva;
-        const marge = pvHT > 0 ? ((pvHT - coutTotal) / pvHT) * 100 : 0;
+        
+        const tva = parseFloat(document.getElementById('cfg-tva').value);
+        const mode = document.getElementById('cfg-mode').value;
+        const val = parseFloat(document.getElementById('cfg-valeur').value) || 0;
+        
+        let pvHT = 0;
+        if(mode === 'coef') {
+            pvHT = coutTotal * val;
+        } else {
+            // PV = Coût / (1 - Marge%)
+            pvHT = coutTotal / (1 - (val / 100));
+        }
+        
+        const pvTTC = pvHT * tva;
 
         document.getElementById('res-cru').innerText = cruTotal;
-        document.getElementById('res-cout-kg').innerText = coutKgCuit.toFixed(2);
-        document.getElementById('res-pv').innerText = pvTTC.toFixed(2);
-        document.getElementById('res-marge').innerText = marge.toFixed(1);
+        document.getElementById('res-cout-kg').innerText = cuitTotal > 0 ? coutKgCuit.toFixed(2) : "0.00";
+        document.getElementById('res-pv').innerText = isFinite(pvTTC) ? pvTTC.toFixed(2) : "0.00";
     }
 
     function addRowRecette() {
@@ -164,7 +179,7 @@
         document.querySelectorAll('.rec-select').forEach(s => { const old = s.value; s.innerHTML = opts; s.value = old; });
     }
 
-    // --- CLOUD ---
+    // --- CLOUD SYNC ---
     function configurerCloud() {
         const id = prompt("Gist ID :");
         const token = prompt("GitHub Token :");
