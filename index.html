@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V19.0 (Correctif)</title>
+    <title>Boulangerie Pro - V20.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; }
-        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
         .nav-tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 2px solid #bdc3c7; overflow-x: auto; }
         .tab-btn { padding: 10px 15px; border: none; background: #95a5a6; color: white; cursor: pointer; font-weight: bold; white-space: nowrap; }
         .tab-btn.active { background: var(--primary); }
@@ -19,6 +19,7 @@
         th, td { padding: 10px; border: 1px solid #ddd; }
         .btn { padding: 10px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; margin: 2px; }
         .chk-grid { display: grid; grid-template-columns: 1fr 1fr; font-size: 0.75em; gap: 2px; }
+        .result-card { background: #34495e; color: white; padding: 15px; border-radius: 8px; text-align: center; }
     </style>
 </head>
 <body>
@@ -42,7 +43,6 @@
             <button class="btn" style="background:var(--success)" onclick="exportJSON()">💾 Exporter JSON</button>
             <button class="btn" style="background:var(--secondary)" onclick="document.getElementById('file-in').click()">📂 Importer</button>
             <input type="file" id="file-in" style="display:none" onchange="importJSON(event)">
-            <hr>
             <button class="btn" style="background:#d35400" onclick="savePriceHistory()">📈 Enregistrer prix pour Historique</button>
         </div>
         <table><thead><tr><th>Métiers</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr></thead><tbody id="body-mp"></tbody></table>
@@ -50,25 +50,62 @@
     </div>
 
     <div id="tab-labo" class="tab-content">
-        <h2>🧪 Composition : <input type="text" placeholder="Nom produit" style="width:200px;"></h2>
-        <table><thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Prix</th><th>Action</th></tr></thead><tbody id="body-recette"></tbody></table>
-        <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
-        <hr>
-        <h3>📊 Pilotage Financier</h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div id="capture-zone">
+            <h2>🧪 Composition : <input type="text" placeholder="Nom produit" style="width:40%;"></h2>
+            <table><thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Prix</th><th>Action</th></tr></thead><tbody id="body-recette"></tbody></table>
+            <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
+            <hr style="margin: 30px 0;">
+
             <div class="section-box">
-                <h4>Données de production</h4>
-                <input type="number" id="input-cru" placeholder="Poids pièce cru (g)" oninput="calculerFinance()">
-                <input type="number" id="input-cuit" placeholder="Poids pièce cuit (g)" oninput="calculerFinance()">
+                <h3>⚖️ Réglages recette</h3>
+                <p><strong>Total pâte crue :</strong> <span id="res-total-raw">0</span>g</p>
+                <input type="number" id="input-cru" placeholder="Poids 1 pièce cru (g)" oninput="calculerFinance()" style="width:45%">
+                <input type="number" id="input-cuit" placeholder="Poids 1 pièce cuit (g)" oninput="calculerFinance()" style="width:45%">
             </div>
+
             <div class="section-box">
-                <h4>Paramètres de rentabilité</h4>
-                <input type="number" id="input-coef" placeholder="Coeff. Mult." value="3.0" oninput="calculerFinance()">
-                <input type="number" id="input-marge" placeholder="Taux Marge (%)" value="66" oninput="calculerFinance()">
+                <h3>💰 Réglages du prix</h3>
+                <input type="number" id="input-coef" placeholder="Coeff. Multiplicateur" value="3.0" step="0.1" oninput="calculerFinance()" style="width:30%">
+                <input type="number" id="input-marge" placeholder="Taux Marge (%)" value="66" oninput="calculerFinance()" style="width:30%">
+                <select id="select-tva" onchange="calculerFinance()" style="width:30%">
+                    <option value="0.055">TVA 5,5%</option>
+                    <option value="0.10">TVA 10%</option>
+                    <option value="0.20">TVA 20%</option>
+                </select>
+            </div>
+
+            <div class="section-box">
+                <h3>📊 Définition du prix brut</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div class="result-card"><strong>Méthode Coeff.</strong><br>HT: <span id="res-c-ht">0</span>€ | TTC: <span id="res-c-ttc">0</span>€</div>
+                    <div class="result-card"><strong>Méthode Marge</strong><br>HT: <span id="res-m-ht">0</span>€ | TTC: <span id="res-m-ttc">0</span>€</div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h3>📦 Zone emballage</h3>
+                <input type="checkbox" id="check-emb" onchange="toggleEmb(); calculerFinance()"> <label>Inclure emballage</label>
+                <div id="div-emb" style="display:none; margin-top:10px;">
+                    <input type="number" id="input-emb" placeholder="Prix 1 emballage TTC (€)" oninput="calculerFinance()" style="width:40%;">
+                </div>
+            </div>
+
+            <div class="section-box" style="background:#e1f5fe;">
+                <h3>🛒 Définition du prix magasin (avec emballage)</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div class="result-card" style="background:var(--primary);"><strong>Méthode Coeff.</strong><br>HT: <span id="final-c-ht">0</span>€ | TTC: <span id="final-c-ttc">0</span>€</div>
+                    <div class="result-card" style="background:var(--primary);"><strong>Méthode Marge</strong><br>HT: <span id="final-m-ht">0</span>€ | TTC: <span id="final-m-ttc">0</span>€</div>
+                </div>
             </div>
         </div>
+        <button class="btn" style="background:#8e44ad" onclick="alert('Archivé')">💾 Archiver</button>
+        <button class="btn" style="background:#e67e22" onclick="exportToJPG()">📸 Exporter .JPG</button>
     </div>
 
+    <div id="tab-boulange" class="tab-content"><h2>🥖 Boulangerie</h2></div>
+    <div id="tab-patis" class="tab-content"><h2>🍰 Pâtisserie</h2></div>
+    <div id="tab-viennoiseries" class="tab-content"><h2>🥐 Viennoiserie</h2></div>
+    <div id="tab-voyage" class="tab-content"><h2>🧁 Gâteaux de Voyages</h2></div>
     <div id="tab-historique" class="tab-content">
         <h2>📈 Historique Matières Premières</h2>
         <select id="hist-metier" onchange="updateChart()"><option>Boulangerie</option><option>Pâtisserie</option></select>
@@ -81,7 +118,7 @@
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.getElementById('btn-' + id).classList.add('active');
+        document.getElementById('btn-tab-' + id).classList.add('active');
     }
 
     function addRowMP() {
@@ -91,16 +128,55 @@
         <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>`;
     }
 
-    // Fonctions Cloud
-    function sync() { document.getElementById('sync-status').innerHTML = "<strong>Statut :</strong> Synchronisé à " + new Date().toLocaleTimeString(); }
-    function exportJSON() { alert("Données exportées en JSON"); }
-    function importJSON(e) { alert("Données importées"); }
-    
-    // Fonction Historique
-    function savePriceHistory() { 
-        alert("Enregistré ! Vos prix actuels sont archivés dans l'historique.");
-        // Logique de stockage localStorage ici
+    function addRowRecette() {
+        const row = document.getElementById('body-recette').insertRow();
+        row.innerHTML = `<td><input type="text" class="rec-name"></td><td><input type="number" class="rec-qte" oninput="calculerFinance()"></td>
+        <td><input type="number" class="rec-prix" oninput="calculerFinance()"></td>
+        <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove(); calculerFinance()">❌</button></td>`;
     }
+
+    function toggleEmb() { document.getElementById('div-emb').style.display = document.getElementById('check-emb').checked ? 'block' : 'none'; }
+
+    function calculerFinance() {
+        const tvaRate = parseFloat(document.getElementById('select-tva').value);
+        const coef = parseFloat(document.getElementById('input-coef').value) || 0;
+        const marge = parseFloat(document.getElementById('input-marge').value) || 0;
+        
+        let totalCost = 0, totalWeight = 0;
+        document.querySelectorAll('#body-recette tr').forEach(tr => {
+            const qte = parseFloat(tr.querySelector('.rec-qte').value) || 0;
+            const prix = parseFloat(tr.querySelector('.rec-prix').value) || 0;
+            totalCost += (qte / 1000) * prix;
+            totalWeight += qte;
+        });
+        
+        const pieceWeight = parseFloat(document.getElementById('input-cru').value) || 1;
+        const unitCost = (totalWeight > 0) ? (totalCost / totalWeight) * pieceWeight : 0;
+
+        // Prix Brut
+        const cHT = unitCost * coef;
+        const mHT = (marge < 100) ? unitCost / (1 - (marge / 100)) : 0;
+
+        document.getElementById('res-c-ht').innerText = cHT.toFixed(2);
+        document.getElementById('res-c-ttc').innerText = (cHT * (1 + tvaRate)).toFixed(2);
+        document.getElementById('res-m-ht').innerText = isFinite(mHT) ? mHT.toFixed(2) : "0";
+        document.getElementById('res-m-ttc').innerText = isFinite(mHT) ? (mHT * (1 + tvaRate)).toFixed(2) : "0";
+
+        // Prix Final (avec emballage)
+        const embTTC = document.getElementById('check-emb').checked ? (parseFloat(document.getElementById('input-emb').value) || 0) : 0;
+        const embHT = embTTC / (1 + tvaRate);
+
+        document.getElementById('final-c-ht').innerText = (cHT + embHT).toFixed(2);
+        document.getElementById('final-c-ttc').innerText = ((cHT + embHT) * (1 + tvaRate)).toFixed(2);
+        document.getElementById('final-m-ht').innerText = isFinite(mHT) ? (mHT + embHT).toFixed(2) : "0";
+        document.getElementById('final-m-ttc').innerText = isFinite(mHT) ? ((mHT + embHT) * (1 + tvaRate)).toFixed(2) : "0";
+    }
+
+    function sync() { document.getElementById('sync-status').innerHTML = "<strong>Statut :</strong> Synchronisé à " + new Date().toLocaleTimeString(); }
+    function exportJSON() { alert("Données exportées"); }
+    function importJSON(e) { alert("Données importées"); }
+    function savePriceHistory() { alert("Prix enregistrés"); }
+    function exportToJPG() { html2canvas(document.querySelector("#capture-zone")).then(c => { const a = document.createElement('a'); a.download = 'Recette.jpg'; a.href = c.toDataURL(); a.click(); }); }
 </script>
 </body>
 </html>
