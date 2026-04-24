@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V24.0</title>
+    <title>Boulangerie Pro - V25.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -20,6 +20,7 @@
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
         th, td { padding: 8px; border: 1px solid #ddd; }
         .btn { padding: 8px 12px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
+        .chk-grid { display: grid; grid-template-columns: 1fr 1fr; font-size: 0.70em; gap: 1px; }
     </style>
 </head>
 <body>
@@ -38,6 +39,7 @@
     <div id="tab-mp" class="tab-content active">
         <div class="section-box">
             <h3>☁️ Gestion du Cloud & Historique</h3>
+            <p id="sync-status"><strong>Statut :</strong> Prêt</p>
             <button class="btn" style="background:#2980b9" onclick="sync()">🔄 Synchroniser</button>
             <button class="btn" style="background:var(--success)" onclick="exportJSON()">💾 Exporter JSON</button>
             <button class="btn" style="background:#d35400" onclick="savePriceHistory()">📈 Enregistrer prix pour Historique</button>
@@ -47,49 +49,48 @@
     </div>
 
     <div id="tab-labo" class="tab-content">
-        <h2>🧪 Composition : <input type="text" placeholder="Nom produit"></h2>
-        <table><thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Prix</th><th>Action</th></tr></thead><tbody id="body-recette"></tbody></table>
-        <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
-        <hr>
-        
-        <div class="section-box">
-            <h3>⚖️ Réglages recette</h3>
-            <p><strong>Total pâte crue :</strong> <span id="res-total-raw">0</span>g</p>
-            <label>Poids 1 pièce crue (g) :</label><input type="number" id="input-cru" oninput="calculerFinance()">
-            <label>Poids 1 pièce cuit (g) :</label><input type="number" id="input-cuit" oninput="calculerFinance()">
-        </div>
-
-        <div class="section-box">
-            <h3>💰 Réglages du prix</h3>
-            <label>Coefficient multiplicateur :</label><input type="number" id="input-coef" value="3.0" step="0.1" oninput="calculerFinance()">
-            <label>Taux de marge (%) :</label><input type="number" id="input-marge" value="66" oninput="calculerFinance()">
-            <label>TVA :</label>
-            <select id="select-tva" onchange="calculerFinance()">
-                <option value="0.055">5,5%</option><option value="0.10">10%</option><option value="0.20">20%</option>
-            </select>
-        </div>
-
-        <div class="section-box">
-            <h3>📊 Définition du prix brut</h3>
-            <div class="calc-grid">
-                <div class="result-card"><strong>Coeff. (HT) :</strong> <span id="res-c-ht">0</span>€ | <strong>(TTC) :</strong> <span id="res-c-ttc">0</span>€</div>
-                <div class="result-card"><strong>Marge (HT) :</strong> <span id="res-m-ht">0</span>€ | <strong>(TTC) :</strong> <span id="res-m-ttc">0</span>€</div>
+        <div id="capture-zone">
+            <h2>🧪 Composition : <input type="text" placeholder="Nom produit"></h2>
+            <table><thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Prix</th><th>Action</th></tr></thead><tbody id="body-recette"></tbody></table>
+            <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
+            <hr style="margin: 30px 0;">
+            
+            <div class="section-box">
+                <h3>⚖️ Réglages recette</h3>
+                <p><strong>Total pâte crue :</strong> <span id="res-total-raw">0</span>g</p>
+                <label>Poids 1 pièce crue (g) :</label><input type="number" id="input-cru" oninput="calculerFinance()">
+                <label>Poids 1 pièce cuit (g) :</label><input type="number" id="input-cuit" oninput="calculerFinance()">
             </div>
-        </div>
 
-        <div class="section-box">
-            <h3>📦 Zone emballage</h3>
-            <input type="checkbox" id="check-emb" onchange="toggleEmb(); calculerFinance()"> Inclure emballage
-            <div id="div-emb" style="display:none; margin-top:10px;">
-                <label>Prix 1 emballage TTC (€) :</label><input type="number" id="input-emb" oninput="calculerFinance()">
+            <div class="section-box">
+                <h3>💰 Réglages du prix</h3>
+                <label><strong>Coefficient multiplicateur :</strong></label><br><input type="number" id="input-coef" value="3.0" step="0.1" oninput="calculerFinance()"><br>
+                <label><strong>Taux de marge (%) :</strong></label><br><input type="number" id="input-marge" value="66" oninput="calculerFinance()"><br>
+                <label>TVA :</label><select id="select-tva" onchange="calculerFinance()"><option value="0.055">5,5%</option><option value="0.10">10%</option><option value="0.20">20%</option></select>
             </div>
-        </div>
 
-        <div class="section-box" style="background:#e8f8f5;">
-            <h3>🛒 Définition du prix magasin</h3>
-            <div class="calc-grid">
-                <div class="result-card" style="background:var(--primary)"><strong>Coeff. + Emb. (HT) :</strong> <span id="fin-c-ht">0</span>€ | <strong>(TTC) :</strong> <span id="fin-c-ttc">0</span>€</div>
-                <div class="result-card" style="background:var(--primary)"><strong>Marge + Emb. (HT) :</strong> <span id="fin-m-ht">0</span>€ | <strong>(TTC) :</strong> <span id="fin-m-ttc">0</span>€</div>
+            <div class="section-box">
+                <h3>📊 Définition du prix brut</h3>
+                <div class="calc-grid">
+                    <div class="result-card"><strong>Coeff. (HT) :</strong> <span id="res-c-ht">0</span>€ | <strong>(TTC) :</strong> <span id="res-c-ttc">0</span>€</div>
+                    <div class="result-card"><strong>Marge (HT) :</strong> <span id="res-m-ht">0</span>€ | <strong>(TTC) :</strong> <span id="res-m-ttc">0</span>€</div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h3>📦 Zone emballage</h3>
+                <input type="checkbox" id="check-emb" onchange="toggleEmb(); calculerFinance()"> Inclure emballage
+                <div id="div-emb" style="display:none; margin-top:10px;">
+                    <label>Prix 1 emballage TTC (€) :</label><input type="number" id="input-emb" oninput="calculerFinance()">
+                </div>
+            </div>
+
+            <div class="section-box" style="background:#e8f8f5;">
+                <h3>🛒 Définition du prix magasin</h3>
+                <div class="calc-grid">
+                    <div class="result-card" style="background:var(--primary)"><strong>Coeff. + Emb. (HT) :</strong> <span id="fin-c-ht">0</span>€ | <strong>(TTC) :</strong> <span id="fin-c-ttc">0</span>€</div>
+                    <div class="result-card" style="background:var(--primary)"><strong>Marge + Emb. (HT) :</strong> <span id="fin-m-ht">0</span>€ | <strong>(TTC) :</strong> <span id="fin-m-ttc">0</span>€</div>
+                </div>
             </div>
         </div>
     </div>
@@ -109,17 +110,23 @@
         document.getElementById('btn-' + target).classList.add('active');
     }
 
-    function toggleEmb() { document.getElementById('div-emb').style.display = document.getElementById('check-emb').checked ? 'block' : 'none'; }
+    function sync() { document.getElementById('sync-status').innerHTML = "<strong>Statut :</strong> Synchronisé à " + new Date().toLocaleTimeString(); }
 
     function addRowMP() {
         const row = document.getElementById('body-mp').insertRow();
-        row.innerHTML = `<td>Boul/Pât/Vien/Voyage</td><td><input type="text"></td><td><input type="text"></td><td><input type="number"></td><td>❌</td>`;
+        row.innerHTML = `<td><div class="chk-grid">
+            <label><input type="checkbox"> Boul.</label><label><input type="checkbox"> Pât.</label>
+            <label><input type="checkbox"> Vien.</label><label><input type="checkbox"> Voyage</label></div></td>
+            <td><input type="text"></td><td><input type="text"></td><td><input type="number"></td>
+            <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>`;
     }
 
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
-        row.innerHTML = `<td><input type="text"></td><td><input type="number" class="rec-qte" oninput="calculerFinance()"></td><td><input type="number" class="rec-prix" oninput="calculerFinance()"></td><td>❌</td>`;
+        row.innerHTML = `<td><input type="text"></td><td><input type="number" class="rec-qte" oninput="calculerFinance()"></td><td><input type="number" class="rec-prix" oninput="calculerFinance()"></td><td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>`;
     }
+
+    function toggleEmb() { document.getElementById('div-emb').style.display = document.getElementById('check-emb').checked ? 'block' : 'none'; }
 
     function calculerFinance() {
         const tva = parseFloat(document.getElementById('select-tva').value);
@@ -140,7 +147,7 @@
         
         // Calculs Brut
         const cHT = coutUnitaire * coef;
-        const mHT = (marge < 100) ? coutUnitaire / (1 - (marge / 100)) : 0;
+        const mHT = (marge < 100 && marge > 0) ? coutUnitaire / (1 - (marge / 100)) : 0;
         
         document.getElementById('res-c-ht').innerText = cHT.toFixed(2);
         document.getElementById('res-c-ttc').innerText = (cHT * (1+tva)).toFixed(2);
@@ -157,9 +164,8 @@
         document.getElementById('fin-m-ttc').innerText = ((mHT + embHT) * (1+tva)).toFixed(2);
     }
 
-    function sync() { alert('Sync'); }
-    function exportJSON() { alert('JSON'); }
-    function savePriceHistory() { alert('Saved'); }
+    function exportJSON() { alert('Export JSON'); }
+    function savePriceHistory() { alert('Prix enregistrés'); }
 </script>
 </body>
 </html>
