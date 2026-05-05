@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V30.1</title>
+    <title>Boulangerie Pro - V30.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
@@ -22,7 +22,7 @@
         .chk-grid { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 0.70em; gap: 2px; }
     </style>
 </head>
-<body onload="initGitHub()">
+<body onload="checkCloudOnStart()">
 
 <div class="nav-tabs">
     <button class="tab-btn active" id="btn-mp" onclick="changeTab('mp')">Matière première</button>
@@ -35,33 +35,27 @@
 </div>
 
 <div class="container">
-    <!-- ONGLET MATIERE PREMIERE -->
     <div id="tab-mp" class="tab-content active">
         <div class="section-box">
             <h3>☁️ Gestion du Cloud & Historique</h3>
-            <p id="sync-status"><strong>Statut :</strong> En attente de configuration</p>
-            <button class="btn" style="background:#2980b9" onclick="pushToGitHub()">🔄 Synchroniser GitHub</button>
+            <p id="sync-status"><strong>Statut :</strong> Non connecté</p>
+            <button class="btn" style="background:#2980b9" onclick="runFullSync()">🔄 Lancer Synchronisation Cloud</button>
             <button class="btn" style="background:var(--success)" onclick="exportJSON()">💾 Exporter JSON</button>
-            <button class="btn" style="background:#d35400" onclick="alert('Prix enregistrés dans l\'historique !')">📈 Enregistrer prix</button>
         </div>
         <table><thead><tr><th>Métiers</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr></thead><tbody id="body-mp"></tbody></table>
         <button class="btn" style="background:var(--success)" onclick="addRowMP()">+ Ajouter MP</button>
     </div>
 
-    <!-- ONGLET LABO (Architecture V27 + Menus Dynamiques) -->
     <div id="tab-labo" class="tab-content">
         <div id="capture-zone">
             <h2>🧪 Composition : <input type="text" id="recipe-name-labo" placeholder="Nom produit"></h2>
             <table>
-                <thead>
-                    <tr><th>Métier</th><th>Ingrédient</th><th>Qté (g)</th><th>Prix (€/kg)</th><th>Action</th></tr>
-                </thead>
+                <thead><tr><th>Métier</th><th>Ingrédient</th><th>Qté (g)</th><th>Prix (€/kg)</th><th>Action</th></tr></thead>
                 <tbody id="body-recette"></tbody>
             </table>
             <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
             <hr>
             <div class="section-box">
-                <h3>⚖️ Réglages recette</h3>
                 <p><strong>Total pâte crue :</strong> <span id="res-total-raw">0</span>g</p>
                 <label>Poids 1 pièce crue (g) :</label><input type="number" id="input-cru" oninput="calculerFinance()">
             </div>
@@ -80,11 +74,8 @@
 </div>
 
 <script>
-    // --- CONFIGURATION OBLIGATOIRE ---
-    const GH_TOKEN = "TON_TOKEN_GITHUB"; 
-    const GH_REPO = "UTILISATEUR/DEPOT";
-    const GH_PATH = "ingredients.json";
-    let fileSha = "";
+    // Variables persistantes pour la session
+    let GH_CONFIG = { token: "", repo: "", path: "ingredients.json", sha: "" };
 
     function changeTab(target) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -106,6 +97,69 @@
             <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>`;
     }
 
+    // --- LOGIQUE CLOUD AVEC BOITES DE DIALOGUE ---
+
+    async function runFullSync() {
+        // 1. Demander les infos si vides
+        if(!GH_CONFIG.token) GH_CONFIG.token = prompt("Entrez votre Token GitHub (ghp_...):");
+        if(!GH_CONFIG.repo) GH_CONFIG.repo = prompt("Entrez votre Repo (Utilisateur/Depot):");
+        
+        if(!GH_CONFIG.token || !GH_CONFIG.repo) return alert("Infos manquantes.");
+
+        document.getElementById('sync-status').innerText = "Statut : Synchronisation...";
+
+        // 2. Récupérer les données actuelles du tableau
+        const data = [];
+        document.querySelectorAll('#body-mp tr').forEach(tr => {
+            data.push({
+                b: tr.querySelector('.m-b').checked, p: tr.querySelector('.m-p').checked,
+                v: tr.querySelector('.m-v').checked, g: tr.querySelector('.m-g').checked,
+                f: tr.querySelector('.mp-fourn').value, n: tr.querySelector('.mp-nom').value,
+                px: tr.querySelector('.mp-prix').value
+            });
+        });
+
+        try {
+            // 3. Récupérer le SHA du fichier existant
+            const getRes = await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
+                headers: { "Authorization": `token ${GH_CONFIG.token}` }
+            });
+            
+            if(getRes.ok) {
+                const getJson = await getRes.json();
+                GH_CONFIG.sha = getJson.sha;
+            }
+
+            // 4. Envoyer les nouvelles données
+            const putRes = await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
+                method: "PUT",
+                headers: { "Authorization": `token ${GH_CONFIG.token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: "Mise à jour via interface",
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))),
+                    sha: GH_CONFIG.sha
+                })
+            });
+
+            if(putRes.ok) {
+                const putJson = await putRes.ok ? await putRes.json() : null;
+                GH_CONFIG.sha = putJson.content.sha;
+                document.getElementById('sync-status').innerText = "Statut : Connecté & Synchronisé";
+                alert("✅ Cloud mis à jour avec succès !");
+            } else {
+                throw new Error("Erreur de réponse GitHub");
+            }
+        } catch (e) {
+            alert("❌ Erreur : " + e.message);
+            document.getElementById('sync-status').innerText = "Statut : Erreur";
+        }
+    }
+
+    async function checkCloudOnStart() {
+        // Optionnel : charge les données au démarrage si les variables sont codées en dur
+    }
+
+    // --- RESTE DU CODE (LABO / EXPORT) INCHANGÉ ---
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
         row.innerHTML = `
@@ -148,42 +202,10 @@
         document.getElementById('fin-c-ttc').innerText = res.toFixed(2);
     }
 
-    // --- FONCTIONS CLOUD (RÉACTIVÉES) ---
-    async function initGitHub() {
-        if(GH_TOKEN === "TON_TOKEN_GITHUB") return;
-        const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_PATH}`, {
-            headers: { "Authorization": `token ${GH_TOKEN}` }
-        });
-        if(res.ok) {
-            const json = await res.json();
-            fileSha = json.sha;
-            JSON.parse(atob(json.content)).forEach(item => addRowMP(item));
-            document.getElementById('sync-status').innerText = "Statut : GitHub OK";
-        }
-    }
-
-    async function pushToGitHub() {
-        const data = [];
-        document.querySelectorAll('#body-mp tr').forEach(tr => {
-            data.push({
-                b: tr.querySelector('.m-b').checked, p: tr.querySelector('.m-p').checked,
-                v: tr.querySelector('.m-v').checked, g: tr.querySelector('.m-g').checked,
-                f: tr.querySelector('.mp-fourn').value, n: tr.querySelector('.mp-nom').value,
-                px: tr.querySelector('.mp-prix').value
-            });
-        });
-        const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_PATH}`, {
-            method: "PUT",
-            headers: { "Authorization": `token ${GH_TOKEN}` },
-            body: JSON.stringify({ message: "Update", content: btoa(JSON.stringify(data)), sha: fileSha })
-        });
-        if(res.ok) { alert("Synchronisé !"); const j = await res.json(); fileSha = j.content.sha; }
-    }
-
     function exportJSON() {
         const data = [];
         document.querySelectorAll('#body-mp tr').forEach(tr => {
-            data.push({ nom: tr.querySelector('.mp-nom').value, prix: tr.querySelector('.mp-prix').value });
+            data.push({ n: tr.querySelector('.mp-nom').value, px: tr.querySelector('.mp-prix').value });
         });
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "mp.json"; a.click();
