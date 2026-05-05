@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro V30.17 - Expert</title>
+    <title>Boulangerie Pro V30.19 - Labo Intelligent</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
@@ -14,9 +14,11 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Filtres Métiers */
-        .filter-zone { background: #eee; padding: 10px; margin-bottom: 15px; border-radius: 5px; display: flex; gap: 15px; align-items: center; }
-        
+        /* Admin Bar */
+        .admin-bar { background: #34495e; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .admin-section { display: flex; flex-direction: column; gap: 8px; }
+        .admin-actions { display: flex; gap: 10px; align-items: center; }
+
         /* Pilotage Labo */
         .section-title { background: #34495e; color: white; padding: 8px 15px; border-radius: 4px; margin: 20px 0 10px 0; font-size: 0.9em; text-transform: uppercase; }
         .grid-pilotage { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -30,20 +32,39 @@
         th, td { padding: 10px; border: 1px solid #eee; text-align: left; }
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
         .btn { padding: 10px 15px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
+        
+        /* Select spécifique Labo pour le tri */
+        .tri-metier { background: #f9f9f9; font-weight: bold; color: var(--primary); width: 70px !important; }
     </style>
 </head>
 <body>
 
 <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab('mp')">Matières Premières</button>
+    <button class="tab-btn active" onclick="showTab('mp')">Matières Premières & Gestion</button>
     <button class="tab-btn" onclick="showTab('labo')">Labo</button>
-    <button class="tab-btn" onclick="showTab('archive')">Cloud & Archivage</button>
 </div>
 
 <div class="container">
     <!-- ONGLET MP -->
     <div id="tab-mp" class="tab-content active">
-        <div class="filter-zone">
+        <div class="admin-bar">
+            <div class="admin-section">
+                <span>🌐 Synchronisation Cloud</span>
+                <div class="admin-actions">
+                    <input type="password" id="gh-token" placeholder="Token GitHub">
+                    <button class="btn" style="background:var(--primary)" onclick="syncGist()">🔄 Sync Cloud</button>
+                </div>
+            </div>
+            <div class="admin-section">
+                <span>💾 Archivage Local</span>
+                <div class="admin-actions">
+                    <button class="btn" style="background:#7f8c8d" onclick="exportLocal()">📥 Exporter (.json)</button>
+                    <input type="file" id="import-local" onchange="importLocal()">
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:15px; background:#eee; padding:10px; border-radius:5px; margin-bottom:15px;">
             <strong>Filtres :</strong>
             <label><input type="checkbox" checked onchange="filterMP()" class="f-check" value="B"> B</label>
             <label><input type="checkbox" checked onchange="filterMP()" class="f-check" value="P"> P</label>
@@ -51,6 +72,7 @@
             <label><input type="checkbox" checked onchange="filterMP()" class="f-check" value="GV"> GV</label>
             <button class="btn" style="background:var(--success); margin-left:auto;" onclick="addRowMP()">+ Ajouter MP</button>
         </div>
+
         <table>
             <thead><tr><th>Métier</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr></thead>
             <tbody id="body-mp"></tbody>
@@ -59,15 +81,23 @@
 
     <!-- ONGLET LABO -->
     <div id="tab-labo" class="tab-content">
-        <div id="capture-zone">
-            <div class="section-title">Composition</div>
+        <div id="capture-zone" style="background:white; padding:10px;">
+            <div class="section-title">Composition (Filtre par métier inclus)</div>
             <div class="box-reglage">
-                <input type="text" id="nom-produit" placeholder="Nom du produit" style="font-weight:bold; font-size:1.2em; margin-bottom:10px;">
+                <input type="text" id="nom-produit" placeholder="Nom du produit" style="font-weight:bold; font-size:1.2em; margin-bottom:15px;">
                 <table id="table-labo">
-                    <thead><tr><th>Ingrédient</th><th>Qté (g)</th><th>Prix calculé</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th style="width:100px;">Métier</th>
+                            <th>Ingrédient</th>
+                            <th style="width:120px;">Qté (g)</th>
+                            <th style="width:120px;">Prix calculé</th>
+                            <th style="width:50px;"></th>
+                        </tr>
+                    </thead>
                     <tbody id="body-labo"></tbody>
                 </table>
-                <button class="btn" style="background:var(--success)" onclick="addRowLabo()">+ Ingrédient</button>
+                <button class="btn" style="background:var(--success)" onclick="addRowLabo()">+ Ajouter un ingrédient</button>
             </div>
 
             <div class="section-title">Pilotage Financier</div>
@@ -89,41 +119,25 @@
                 </div>
             </div>
 
-            <div class="section-title">Définition du prix brut</div>
+            <div class="section-title">Prix Brut</div>
             <div class="comp-wrapper">
                 <div class="res-card coef"><strong>Résultat Coef</strong><div id="brut-c-ttc" style="font-size:1.5em; font-weight:bold;">0.00 € TTC</div><div id="brut-c-ht">0.00 € HT</div></div>
-                <div class="res-card marge"><strong>Résultat % Marge</strong><div id="brut-m-ttc" style="font-size:1.5em; font-weight:bold;">0.00 € TTC</div><div id="brut-m-ht">0.00 € HT</div></div>
+                <div class="res-card marge"><strong>Résultat Marge</strong><div id="brut-m-ttc" style="font-size:1.5em; font-weight:bold;">0.00 € TTC</div><div id="brut-m-ht">0.00 € HT</div></div>
             </div>
 
-            <div class="section-title">Zone Emballage</div>
+            <div class="section-title">Emballage</div>
             <div class="box-reglage" style="display:flex; gap:20px; align-items:center;">
-                <label><input type="checkbox" id="check-emb" onchange="calculerLabo()"> Activer Emballage</label>
+                <label><input type="checkbox" id="check-emb" onchange="calculerLabo()"> Activer</label>
                 <input type="number" id="prix-emb" placeholder="Prix € TTC" step="0.01" oninput="calculerLabo()">
             </div>
 
-            <div class="section-title">Définition du prix magasin</div>
+            <div class="section-title">Prix Magasin (Final)</div>
             <div class="comp-wrapper">
                 <div class="res-card coef" style="background:#d4e6f1;"><strong>Vente Coef + EMB</strong><div id="mag-c-ttc" style="font-size:1.5em; font-weight:bold;">0.00 € TTC</div><div id="mag-c-ht">0.00 € HT</div></div>
                 <div class="res-card marge" style="background:#ebdef0;"><strong>Vente Marge + EMB</strong><div id="mag-m-ttc" style="font-size:1.5em; font-weight:bold;">0.00 € TTC</div><div id="mag-m-ht">0.00 € HT</div></div>
             </div>
         </div>
-        <button class="btn" style="background:#e67e22; width:100%; margin-top:20px;" onclick="exportJPG()">📸 Sauvegarder la Fiche (JPG)</button>
-    </div>
-
-    <!-- ONGLET CLOUD & ARCHIVE -->
-    <div id="tab-archive" class="tab-content">
-        <div class="grid-pilotage">
-            <div class="box-reglage">
-                <h4>🌐 Gestion Cloud (Gist)</h4>
-                <input type="password" id="gh-token" placeholder="Token GitHub (ghp_...)">
-                <button class="btn" style="background:var(--primary); width:100%; margin-top:10px;" onclick="syncGist()">🔄 Synchroniser Cloud</button>
-            </div>
-            <div class="box-reglage">
-                <h4>💾 Archivage Ordinateur</h4>
-                <button class="btn" style="background:var(--secondary); width:100%; margin-bottom:10px;" onclick="exportLocal()">📥 Exporter vers PC (.json)</button>
-                <input type="file" id="import-local" onchange="importLocal()" style="font-size:0.8em;">
-            </div>
-        </div>
+        <button class="btn" style="background:#e67e22; width:100%; margin-top:20px;" onclick="exportJPG()">📸 Sauvegarder (JPG)</button>
     </div>
 </div>
 
@@ -135,18 +149,17 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + id).classList.add('active');
         event.currentTarget.classList.add('active');
-        if(id==='labo') updateLaboSelects();
     }
 
+    // --- MP ---
     function addRowMP(data = {}) {
         const row = document.getElementById('body-mp').insertRow();
-        row.className = `row-mp métier-${data.m || 'B'}`;
         row.innerHTML = `
             <td><select class="m"><option ${data.m=='B'?'selected':''}>B</option><option ${data.m=='P'?'selected':''}>P</option><option ${data.m=='V'?'selected':''}>V</option><option ${data.m=='GV'?'selected':''}>GV</option></select></td>
             <td><input type="text" class="f" value="${data.f || ''}"></td>
             <td><input type="text" class="n" value="${data.n || ''}"></td>
             <td><input type="number" class="p" value="${data.px || ''}"></td>
-            <td><button onclick="this.parentElement.parentElement.remove()" style="background:red; color:white; border:none;">X</button></td>`;
+            <td><button onclick="this.parentElement.parentElement.remove()" style="background:red; color:white; border:none; padding:5px;">X</button></td>`;
     }
 
     function filterMP() {
@@ -157,23 +170,35 @@
         });
     }
 
+    // --- LABO ---
     function addRowLabo() {
         const row = document.getElementById('body-labo').insertRow();
-        row.innerHTML = `<td><select class="l-sel" onchange="calculerLabo()"></select></td>
-                         <td><input type="number" class="l-qte" value="0" oninput="calculerLabo()"></td>
-                         <td class="l-res">0.00</td>
-                         <td><button onclick="this.parentElement.parentElement.remove(); calculerLabo()">❌</button></td>`;
-        updateLaboSelects();
+        row.innerHTML = `
+            <td><select class="tri-metier" onchange="updateRowOptions(this)">
+                <option value="ALL">Tous</option><option value="B">B</option><option value="P">P</option><option value="V">V</option><option value="GV">GV</option>
+            </select></td>
+            <td><select class="l-sel" onchange="calculerLabo()"></select></td>
+            <td><input type="number" class="l-qte" value="0" oninput="calculerLabo()"></td>
+            <td class="l-res">0.00</td>
+            <td><button onclick="this.parentElement.parentElement.remove(); calculerLabo()" style="border:none; background:none;">❌</button></td>`;
+        updateRowOptions(row.querySelector('.tri-metier'));
     }
 
-    function updateLaboSelects() {
+    function updateRowOptions(selectMetier) {
+        const metier = selectMetier.value;
+        const selectProd = selectMetier.parentElement.nextElementSibling.querySelector('.l-sel');
         let opts = '<option value="0">-- Choisir --</option>';
+        
         document.querySelectorAll('#body-mp tr').forEach(tr => {
+            const m = tr.querySelector('.m').value;
             const n = tr.querySelector('.n').value;
             const p = tr.querySelector('.p').value;
-            if(n) opts += `<option value="${p}">${n}</option>`;
+            if(metier === "ALL" || m === metier) {
+                if(n) opts += `<option value="${p}">${n} (${m})</option>`;
+            }
         });
-        document.querySelectorAll('.l-sel').forEach(s => { if(s.innerHTML==="") s.innerHTML = opts; });
+        selectProd.innerHTML = opts;
+        calculerLabo();
     }
 
     function calculerLabo() {
@@ -209,7 +234,7 @@
         }
     }
 
-    // --- ARCHIVAGE & CLOUD ---
+    // --- ACTIONS ---
     function exportLocal() {
         const data = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
             m: tr.querySelector('.m').value, f: tr.querySelector('.f').value, n: tr.querySelector('.n').value, px: tr.querySelector('.p').value
@@ -217,7 +242,7 @@
         const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = "catalogue_mp.json";
+        link.download = "boulangerie_data.json";
         link.click();
     }
 
@@ -244,8 +269,8 @@
                 method: "PATCH", headers: { "Authorization": `token ${token}` },
                 body: JSON.stringify({ files: { "ingredients.json": { content: JSON.stringify(list, null, 2) } } })
             });
-            alert("Cloud synchronisé !");
-        } catch(e) { alert("Erreur de connexion Cloud"); }
+            alert("Cloud OK !");
+        } catch(e) { alert("Erreur Cloud"); }
     }
 
     function exportJPG() {
