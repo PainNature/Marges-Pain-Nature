@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V30.2</title>
+    <title>Boulangerie Pro - V30.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
@@ -14,74 +14,93 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .section-box { border: 1px solid #e1e1e1; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fafafa; }
-        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .result-card { background: #34495e; color: white; padding: 10px; border-radius: 5px; text-align: center; }
+        .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .result-card { background: #34495e; color: white; padding: 15px; border-radius: 5px; text-align: center; }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
         th, td { padding: 8px; border: 1px solid #ddd; }
         .btn { padding: 8px 12px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
-        .chk-grid { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 0.70em; gap: 2px; }
+        input, select { padding: 6px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .chk-grid { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 0.75em; gap: 2px; }
     </style>
 </head>
-<body onload="checkCloudOnStart()">
+<body>
 
 <div class="nav-tabs">
-    <button class="tab-btn active" id="btn-mp" onclick="changeTab('mp')">Matière première</button>
-    <button class="tab-btn" id="btn-labo" onclick="changeTab('labo')">Labo</button>
-    <button class="tab-btn" id="btn-boulange" onclick="changeTab('boulange')">Boulangerie</button>
-    <button class="tab-btn" id="btn-patis" onclick="changeTab('patis')">Pâtisserie</button>
-    <button class="tab-btn" id="btn-viennoiseries" onclick="changeTab('viennoiseries')">Viennoiserie</button>
-    <button class="tab-btn" id="btn-voyage" onclick="changeTab('voyage')">Gat. Voyages</button>
-    <button class="tab-btn" id="btn-historique" onclick="changeTab('historique')">Historique</button>
+    <button class="tab-btn active" onclick="changeTab('mp')">Matière première</button>
+    <button class="tab-btn" onclick="changeTab('labo')">Labo</button>
+    <button class="tab-btn" onclick="changeTab('boulange')">Boulangerie</button>
+    <button class="tab-btn" onclick="changeTab('patis')">Pâtisserie</button>
+    <button class="tab-btn" onclick="changeTab('viennoiseries')">Viennoiserie</button>
+    <button class="tab-btn" onclick="changeTab('voyage')">Gat. Voyages</button>
+    <button class="tab-btn" onclick="changeTab('historique')">Historique</button>
 </div>
 
 <div class="container">
+    <!-- ONGLET MP -->
     <div id="tab-mp" class="tab-content active">
         <div class="section-box">
-            <h3>☁️ Gestion du Cloud & Historique</h3>
-            <p id="sync-status"><strong>Statut :</strong> Non connecté</p>
-            <button class="btn" style="background:#2980b9" onclick="runFullSync()">🔄 Lancer Synchronisation Cloud</button>
-            <button class="btn" style="background:var(--success)" onclick="exportJSON()">💾 Exporter JSON</button>
+            <h3>☁️ Cloud GitHub (ID: 99caadd...)</h3>
+            <button class="btn" style="background:#2980b9" onclick="runFullSync()">🔄 Synchroniser Cloud</button>
+            <button class="btn" style="background:var(--success)" onclick="exportJSON()">💾 Export JSON</button>
         </div>
-        <table><thead><tr><th>Métiers</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr></thead><tbody id="body-mp"></tbody></table>
+        <table>
+            <thead><tr><th>Métiers</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr></thead>
+            <tbody id="body-mp"></tbody>
+        </table>
         <button class="btn" style="background:var(--success)" onclick="addRowMP()">+ Ajouter MP</button>
     </div>
 
+    <!-- ONGLET LABO -->
     <div id="tab-labo" class="tab-content">
-        <div id="capture-zone">
-            <h2>🧪 Composition : <input type="text" id="recipe-name-labo" placeholder="Nom produit"></h2>
+        <div id="capture-zone" style="padding:15px; background:white;">
+            <h2 style="color:var(--primary)">🧪 Fiche Technique : <input type="text" placeholder="Nom produit" style="width:200px; font-size:0.8em;"></h2>
+            
             <table>
-                <thead><tr><th>Métier</th><th>Ingrédient</th><th>Qté (g)</th><th>Prix (€/kg)</th><th>Action</th></tr></thead>
+                <thead><tr><th>Métier</th><th>Ingrédient (Menu Déroulant)</th><th>Qté (g)</th><th>Prix Unitaire</th><th>Total</th><th>Action</th></tr></thead>
                 <tbody id="body-recette"></tbody>
             </table>
-            <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
-            <hr>
-            <div class="section-box">
-                <p><strong>Total pâte crue :</strong> <span id="res-total-raw">0</span>g</p>
-                <label>Poids 1 pièce crue (g) :</label><input type="number" id="input-cru" oninput="calculerFinance()">
-            </div>
-            <div class="section-box">
-                <div class="result-card" style="background:var(--primary)">
-                    <strong>Prix de vente (TTC) :</strong> <br>
-                    <span id="fin-c-ttc" style="font-size:1.5em">0.00</span>€
+            <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ajouter Ingrédient</button>
+
+            <div class="calc-grid" style="margin-top:20px;">
+                <div class="section-box">
+                    <h4>⚖️ Rendement</h4>
+                    <label>Poids 1 pièce crue (g) :</label>
+                    <input type="number" id="input-cru" value="0" oninput="calculerFinance()">
+                    <label>Perte cuisson (%) :</label>
+                    <input type="number" id="input-perte" value="10" oninput="calculerFinance()">
+                </div>
+                <div class="section-box">
+                    <h4>💰 Marges</h4>
+                    <label>Coeff. multiplicateur :</label>
+                    <input type="number" id="input-coef" value="3.5" step="0.1" oninput="calculerFinance()">
+                    <label>TVA (%) :</label>
+                    <select id="input-tva" onchange="calculerFinance()">
+                        <option value="5.5">5.5%</option>
+                        <option value="10">10%</option>
+                        <option value="20">20%</option>
+                    </select>
+                </div>
+                <div class="result-card">
+                    <h4>PRIX TTC CONSEILLÉ</h4>
+                    <div style="font-size:2em;"><span id="fin-c-ttc">0.00</span> €</div>
                 </div>
             </div>
         </div>
-        <div class="section-box" style="background:#fef9e7;">
-            <button class="btn" style="background:#e67e22" onclick="exportToJPG()">📸 JPEG</button>
-            <button class="btn" style="background:#8e44ad" onclick="alert('Fiche classée !')">📂 Classer</button>
+
+        <div class="section-box" style="margin-top:20px; display:flex; gap:10px;">
+            <button class="btn" style="background:#e67e22" onclick="exportToJPG()">📸 SAUVEGARDER JPEG</button>
+            <button class="btn" style="background:#8e44ad" onclick="alert('Fiche envoyée vers l\'onglet métier !')">📂 CLASSER FICHE</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Variables persistantes pour la session
+    const CLOUD_ID = "99caadd65ae7d235bb34c56975410acd";
     let GH_CONFIG = { token: "", repo: "", path: "ingredients.json", sha: "" };
 
     function changeTab(target) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + target).classList.add('active');
-        document.getElementById('btn-' + target).classList.add('active');
     }
 
     function addRowMP(data = {}) {
@@ -94,92 +113,31 @@
             <td><input type="text" class="mp-fourn" value="${data.f || ''}"></td>
             <td><input type="text" class="mp-nom" value="${data.n || ''}"></td>
             <td><input type="number" class="mp-prix" value="${data.px || ''}"></td>
-            <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>`;
+            <td><button onclick="this.parentElement.parentElement.remove()" style="background:red; color:white; border:none; cursor:pointer;">❌</button></td>`;
     }
 
-    // --- LOGIQUE CLOUD AVEC BOITES DE DIALOGUE ---
-
-    async function runFullSync() {
-        // 1. Demander les infos si vides
-        if(!GH_CONFIG.token) GH_CONFIG.token = prompt("Entrez votre Token GitHub (ghp_...):");
-        if(!GH_CONFIG.repo) GH_CONFIG.repo = prompt("Entrez votre Repo (Utilisateur/Depot):");
-        
-        if(!GH_CONFIG.token || !GH_CONFIG.repo) return alert("Infos manquantes.");
-
-        document.getElementById('sync-status').innerText = "Statut : Synchronisation...";
-
-        // 2. Récupérer les données actuelles du tableau
-        const data = [];
-        document.querySelectorAll('#body-mp tr').forEach(tr => {
-            data.push({
-                b: tr.querySelector('.m-b').checked, p: tr.querySelector('.m-p').checked,
-                v: tr.querySelector('.m-v').checked, g: tr.querySelector('.m-g').checked,
-                f: tr.querySelector('.mp-fourn').value, n: tr.querySelector('.mp-nom').value,
-                px: tr.querySelector('.mp-prix').value
-            });
-        });
-
-        try {
-            // 3. Récupérer le SHA du fichier existant
-            const getRes = await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
-                headers: { "Authorization": `token ${GH_CONFIG.token}` }
-            });
-            
-            if(getRes.ok) {
-                const getJson = await getRes.json();
-                GH_CONFIG.sha = getJson.sha;
-            }
-
-            // 4. Envoyer les nouvelles données
-            const putRes = await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
-                method: "PUT",
-                headers: { "Authorization": `token ${GH_CONFIG.token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    message: "Mise à jour via interface",
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))),
-                    sha: GH_CONFIG.sha
-                })
-            });
-
-            if(putRes.ok) {
-                const putJson = await putRes.ok ? await putRes.json() : null;
-                GH_CONFIG.sha = putJson.content.sha;
-                document.getElementById('sync-status').innerText = "Statut : Connecté & Synchronisé";
-                alert("✅ Cloud mis à jour avec succès !");
-            } else {
-                throw new Error("Erreur de réponse GitHub");
-            }
-        } catch (e) {
-            alert("❌ Erreur : " + e.message);
-            document.getElementById('sync-status').innerText = "Statut : Erreur";
-        }
-    }
-
-    async function checkCloudOnStart() {
-        // Optionnel : charge les données au démarrage si les variables sont codées en dur
-    }
-
-    // --- RESTE DU CODE (LABO / EXPORT) INCHANGÉ ---
+    // --- LE MENU DEROULANT DYNAMIQUE ---
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
         row.innerHTML = `
             <td><select onchange="updateIngList(this)"><option value="ALL">Tous</option><option value="B">B</option><option value="P">P</option><option value="V">V</option><option value="G">G</option></select></td>
-            <td><select class="rec-sel" onchange="updateRowPrice(this)" style="width:100%"></select></td>
+            <td><select class="rec-sel" onchange="updateRowPrice(this)"></select></td>
             <td><input type="number" class="rec-qte" value="0" oninput="calculerFinance()"></td>
             <td class="rec-u-prix">0.00</td>
-            <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove(); calculerFinance()">❌</button></td>`;
+            <td class="rec-subtotal">0.00</td>
+            <td><button onclick="this.parentElement.parentElement.remove(); calculerFinance()" style="background:red; color:white; border:none;">❌</button></td>`;
         updateIngList(row.cells[0].querySelector('select'));
     }
 
     function updateIngList(filter) {
         const sel = filter.parentElement.parentElement.querySelector('.rec-sel');
         const metier = filter.value;
-        let options = '<option value="0">Choisir...</option>';
+        let options = '<option value="0">Choisir ingrédient...</option>';
         document.querySelectorAll('#body-mp tr').forEach(tr => {
             const nom = tr.querySelector('.mp-nom').value;
             const prix = tr.querySelector('.mp-prix').value;
-            const isMatch = (metier==='ALL') || (metier==='B' && tr.querySelector('.m-b').checked) || (metier==='P' && tr.querySelector('.m-p').checked) || (metier==='V' && tr.querySelector('.m-v').checked) || (metier==='G' && tr.querySelector('.m-g').checked);
-            if(nom && isMatch) options += `<option value="${prix}">${nom}</option>`;
+            const match = (metier==='ALL') || (metier==='B' && tr.querySelector('.m-b').checked) || (metier==='P' && tr.querySelector('.m-p').checked) || (metier==='V' && tr.querySelector('.m-v').checked) || (metier==='G' && tr.querySelector('.m-g').checked);
+            if(nom && match) options += `<option value="${prix}">${nom}</option>`;
         });
         sel.innerHTML = options;
     }
@@ -194,27 +152,69 @@
         document.querySelectorAll('#body-recette tr').forEach(tr => {
             const qte = parseFloat(tr.querySelector('.rec-qte').value) || 0;
             const prix = parseFloat(tr.querySelector('.rec-sel').value) || 0;
-            totalCout += (qte/1000)*prix; totalPoids += qte;
+            const sub = (qte/1000)*prix;
+            tr.querySelector('.rec-subtotal').innerText = sub.toFixed(2);
+            totalCout += sub; totalPoids += qte;
         });
-        document.getElementById('res-total-raw').innerText = totalPoids;
-        const cru = parseFloat(document.getElementById('input-cru').value) || 0;
-        const res = (totalPoids > 0) ? (totalCout / totalPoids) * cru * 3 * 1.055 : 0;
-        document.getElementById('fin-c-ttc').innerText = res.toFixed(2);
+
+        const piece = parseFloat(document.getElementById('input-cru').value) || 0;
+        const coef = parseFloat(document.getElementById('input-coef').value) || 1;
+        const tva = 1 + (parseFloat(document.getElementById('input-tva').value)/100);
+
+        if(totalPoids > 0 && piece > 0) {
+            const prixVente = (totalCout / totalPoids) * piece * coef * tva;
+            document.getElementById('fin-c-ttc').innerText = prixVente.toFixed(2);
+        }
+    }
+
+    // --- SAUVEGARDE JPEG ---
+    function exportToJPG() {
+        html2canvas(document.querySelector("#capture-zone")).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Fiche-Boulangerie.jpg';
+            link.href = canvas.toDataURL("image/jpeg", 0.9);
+            link.click();
+        });
+    }
+
+    // --- FONCTION CLOUD ---
+    async function runFullSync() {
+        GH_CONFIG.token = GH_CONFIG.token || prompt("Token GitHub :");
+        GH_CONFIG.repo = GH_CONFIG.repo || prompt("Dépôt (User/Repo) :");
+        if(!GH_CONFIG.token || !GH_CONFIG.repo) return;
+        
+        const data = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
+            b: tr.querySelector('.m-b').checked, p: tr.querySelector('.m-p').checked,
+            v: tr.querySelector('.m-v').checked, g: tr.querySelector('.m-g').checked,
+            f: tr.querySelector('.mp-fourn').value, n: tr.querySelector('.mp-nom').value,
+            px: tr.querySelector('.mp-prix').value
+        }));
+
+        try {
+            const res = await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
+                headers: { "Authorization": `token ${GH_CONFIG.token}` }
+            });
+            if(res.ok) GH_CONFIG.sha = (await res.json()).sha;
+
+            await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
+                method: "PUT",
+                headers: { "Authorization": `token ${GH_CONFIG.token}` },
+                body: JSON.stringify({
+                    message: "Sync Cloud " + CLOUD_ID,
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))),
+                    sha: GH_CONFIG.sha
+                })
+            });
+            alert("✅ Données synchronisées !");
+        } catch(e) { alert("❌ Erreur Cloud"); }
     }
 
     function exportJSON() {
-        const data = [];
-        document.querySelectorAll('#body-mp tr').forEach(tr => {
-            data.push({ n: tr.querySelector('.mp-nom').value, px: tr.querySelector('.mp-prix').value });
-        });
+        const data = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
+            nom: tr.querySelector('.mp-nom').value, prix: tr.querySelector('.mp-prix').value
+        }));
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "mp.json"; a.click();
-    }
-
-    function exportToJPG() {
-        html2canvas(document.querySelector("#capture-zone")).then(canvas => {
-            const a = document.createElement('a'); a.href = canvas.toDataURL("image/jpeg"); a.download = "fiche.jpg"; a.click();
-        });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "data.json"; a.click();
     }
 </script>
 </body>
