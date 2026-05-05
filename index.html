@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro V30.26 - Persistance Catalogue</title>
+    <title>Boulangerie Pro V30.27 - Restauration Cloud</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
@@ -42,14 +42,14 @@
 </div>
 
 <div class="container">
-    <!-- ONGLET CATALOGUE MP -->
+    <!-- ONGLET MP -->
     <div id="tab-mp" class="tab-content active">
         <div class="admin-bar">
             <div class="admin-section">
                 <span>🌐 Cloud Sync (Gist GitHub)</span>
                 <div style="display:flex; gap:10px; margin-top:5px;">
                     <input type="password" id="gh-token" placeholder="Token GitHub" onchange="localStorage.setItem('gh_token', this.value)">
-                    <button class="btn" style="background:var(--primary)" onclick="syncGist()">🔄 Sync Cloud</button>
+                    <button class="btn" style="background:var(--primary)" onclick="syncGist()">🔄 Sync Cloud (Charger/Sauver)</button>
                 </div>
             </div>
             <div class="admin-section">
@@ -132,7 +132,7 @@
         <button class="btn" style="background:#e67e22; width:100%; margin-top:30px; font-size:1.2em;" onclick="exportJPG()">💾 SAUVEGARDE EN JPEG</button>
     </div>
 
-    <!-- ONGLET HISTORIQUE -->
+    <!-- HISTORIQUE -->
     <div id="tab-hist" class="tab-content">
         <h3>Historique des variations</h3>
         <div id="hist-list" class="box-reglage"></div>
@@ -143,29 +143,18 @@
 <script>
     const GIST_ID = "99caadd65ae7d235bb34c56975410acd";
     const GIST_FILENAME = "ingredients_boulangerie.json";
-    
     let priceHistory = JSON.parse(localStorage.getItem('price_hist_v30')) || [];
 
-    // Chargement initial
     window.onload = () => {
         const savedMP = localStorage.getItem('mp_data_v30');
-        if(savedMP) {
-            const data = JSON.parse(savedMP);
-            data.forEach(d => addRowMP(d));
+        if(savedMP && JSON.parse(savedMP).length > 0) {
+            JSON.parse(savedMP).forEach(d => addRowMP(d));
+        } else {
+            console.log("Catalogue local vide. Prêt pour sync Cloud.");
         }
-        if(localStorage.getItem('gh_token')) {
-            document.getElementById('gh-token').value = localStorage.getItem('gh_token');
-        }
+        if(localStorage.getItem('gh_token')) document.getElementById('gh-token').value = localStorage.getItem('gh_token');
     };
 
-    function showTab(id) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + id).classList.add('active');
-        if(event) event.currentTarget.classList.add('active');
-    }
-
-    // --- LOGIQUE MP & PERSISTANCE ---
     function saveMPToLocal() {
         const data = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
             m: Array.from(tr.querySelectorAll('.m-badge.selected')).map(b => b.innerText),
@@ -213,16 +202,50 @@
         }
     }
 
-    // --- LOGIQUE LABO (SANCTUARISÉE) ---
+    // --- SYNC GIST (RESTAURATION PRIORITAIRE) ---
+    async function syncGist() {
+        const token = document.getElementById('gh-token').value;
+        if(!token) return alert("Saisissez votre Token GitHub");
+
+        try {
+            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                headers: { "Authorization": `token ${token}` }
+            });
+            const gistData = await response.json();
+            
+            if (gistData.files && gistData.files[GIST_FILENAME]) {
+                const cloudItems = JSON.parse(gistData.files[GIST_FILENAME].content);
+                const localCount = document.querySelectorAll('#body-mp tr').length;
+
+                if (localCount === 0 || confirm(`Données Cloud trouvées (${cloudItems.length} items). Écraser le catalogue local ?`)) {
+                    document.getElementById('body-mp').innerHTML = "";
+                    cloudItems.forEach(d => addRowMP(d));
+                    saveMPToLocal();
+                    filterMP();
+                    alert("✅ Données Cloud restaurées dans le catalogue !");
+                    return;
+                }
+            }
+        } catch(e) { console.error("Erreur Cloud:", e); }
+
+        // Si on refuse l'import, on propose de sauver le local actuel vers le Cloud
+        const currentData = JSON.parse(localStorage.getItem('mp_data_v30') || "[]");
+        try {
+            await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                method: "PATCH",
+                headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(currentData, null, 2) } } })
+            });
+            alert("✅ Catalogue local sauvegardé sur le Cloud !");
+        } catch(e) { alert("❌ Erreur de sauvegarde"); }
+    }
+
+    // --- FONCTIONS LABO (SANCTUARISÉES) ---
     function addRowLabo() {
         const row = document.getElementById('body-labo').insertRow();
-        row.innerHTML = `
-            <td><select onchange="updateLaboRowOptions(this)">
-                <option value="ALL">Tous</option><option value="B">B</option><option value="P">P</option><option value="V">V</option><option value="GV">GV</option>
-            </select></td>
+        row.innerHTML = `<td><select onchange="updateLaboRowOptions(this)"><option value="ALL">Tous</option><option value="B">B</option><option value="P">P</option><option value="V">V</option><option value="GV">GV</option></select></td>
             <td><select class="l-sel" onchange="calculerLabo()"></select></td>
-            <td><input type="number" class="l-qte" value="0" oninput="calculerLabo()"></td>
-            <td class="l-res">0.00 €</td>
+            <td><input type="number" class="l-qte" value="0" oninput="calculerLabo()"></td><td class="l-res">0.00 €</td>
             <td><button onclick="this.parentElement.parentElement.remove(); calculerLabo()" style="background:none; border:none; cursor:pointer;">❌</button></td>`;
         updateLaboRowOptions(row.cells[0].querySelector('select'));
     }
@@ -262,8 +285,7 @@
             document.getElementById('brut-m-ht').innerText = bHT_M.toFixed(2) + " € HT";
             document.getElementById('brut-m-ttc').innerText = (bHT_M * tva).toFixed(2) + " € TTC";
             let embHT = document.getElementById('check-emb').checked ? (parseFloat(document.getElementById('prix-emb-ht').value) || 0) : 0;
-            const magHT_C = bHT_C + embHT;
-            const magHT_M = bHT_M + embHT;
+            const magHT_C = bHT_C + embHT; const magHT_M = bHT_M + embHT;
             document.getElementById('mag-c-ht').innerText = "Final HT: " + magHT_C.toFixed(2) + " €";
             document.getElementById('mag-c-ttc').innerText = (magHT_C * tva).toFixed(2) + " € TTC";
             document.getElementById('mag-m-ht').innerText = "Final HT: " + magHT_M.toFixed(2) + " €";
@@ -271,59 +293,23 @@
         }
     }
 
-    // --- SYNC GIST (CORRIGÉ) ---
-    async function syncGist() {
-        const token = document.getElementById('gh-token').value;
-        if(!token) return alert("Veuillez saisir votre Token GitHub");
-
-        try {
-            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                headers: { "Authorization": `token ${token}` }
-            });
-            const gistData = await response.json();
-            
-            if (gistData.files[GIST_FILENAME]) {
-                const cloudItems = JSON.parse(gistData.files[GIST_FILENAME].content);
-                if (confirm(`Données Cloud trouvées (${cloudItems.length} items). Charger ces données ?`)) {
-                    document.getElementById('body-mp').innerHTML = "";
-                    cloudItems.forEach(d => addRowMP(d));
-                    saveMPToLocal();
-                    filterMP();
-                    alert("✅ Données synchronisées !");
-                    return;
-                }
-            }
-        } catch(e) { console.log("Gist non trouvé ou vide"); }
-
-        const currentData = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
-            m: Array.from(tr.querySelectorAll('.m-badge.selected')).map(b => b.innerText),
-            f: tr.querySelector('.f').value, n: tr.querySelector('.n').value, px: tr.querySelector('.p').value
-        }));
-
-        try {
-            await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                method: "PATCH",
-                headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(currentData, null, 2) } } })
-            });
-            alert("✅ Sauvegarde Cloud terminée !");
-        } catch(e) { alert("❌ Erreur de sauvegarde"); }
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        if(event) event.currentTarget.classList.add('active');
     }
 
-    // --- AUTRES FONCTIONS ---
     function updateHistUI() {
         const container = document.getElementById('hist-list');
         container.innerHTML = priceHistory.map(h => `<div class="hist-item"><span><strong>${h.date}</strong> | ${h.item}</span><span>${h.old.toFixed(2)}€ ➔ ${h.new.toFixed(2)}€</span></div>`).join('');
     }
     function clearHist() { priceHistory = []; localStorage.removeItem('price_hist_v30'); updateHistUI(); }
-    
     function exportLocal() {
         const data = localStorage.getItem('mp_data_v30');
         const blob = new Blob([data], {type: "application/json"});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = "sauvegarde_mp.json";
-        link.click();
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+        link.download = "sauvegarde_mp.json"; link.click();
     }
     function importLocal() {
         const file = document.getElementById('import-local').files[0];
@@ -331,8 +317,7 @@
         reader.onload = (e) => {
             const data = JSON.parse(e.target.result);
             document.getElementById('body-mp').innerHTML = "";
-            data.forEach(d => addRowMP(d));
-            saveMPToLocal();
+            data.forEach(d => addRowMP(d)); saveMPToLocal();
         };
         reader.readAsText(file);
     }
@@ -340,8 +325,7 @@
         html2canvas(document.querySelector("#capture-zone"), { scale: 2 }).then(canvas => {
             const link = document.createElement('a');
             link.download = (document.getElementById('nom-produit').value || 'fiche') + '.jpg';
-            link.href = canvas.toDataURL("image/jpeg", 0.9);
-            link.click();
+            link.href = canvas.toDataURL("image/jpeg", 0.9); link.click();
         });
     }
 </script>
