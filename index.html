@@ -2,215 +2,243 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V28.1</title>
+    <title>Boulangerie Pro - V29.1 (GitHub Sync)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
         .nav-tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 2px solid #bdc3c7; overflow-x: auto; }
-        .tab-btn { padding: 10px 15px; border: none; background: #95a5a6; color: white; cursor: pointer; font-weight: bold; white-space: nowrap; }
+        .tab-btn { padding: 10px 15px; border: none; background: #95a5a6; color: white; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: var(--primary); }
         .container { background: white; padding: 20px; border-radius: 0 5px 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .section-box { border: 1px solid #e1e1e1; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fafafa; }
-        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .result-card { background: #34495e; color: white; padding: 10px; border-radius: 5px; text-align: center; }
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
         th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
         .btn { padding: 8px 12px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
-        input, select { padding: 5px; width: 90%; }
+        .chk-grid { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 0.70em; gap: 2px; }
+        .result-card { background: #34495e; color: white; padding: 10px; border-radius: 5px; text-align: center; }
+        input, select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
     </style>
 </head>
-<body>
+<body onload="initGitHub()">
 
 <div class="nav-tabs">
-    <button class="tab-btn active" onclick="changeTab(event, 'mp')">Matière première</button>
-    <button class="tab-btn" onclick="changeTab(event, 'labo')">Labo</button>
-    <button class="tab-btn" onclick="changeTab(event, 'boulange')">Boulangerie</button>
-    <button class="tab-btn" onclick="changeTab(event, 'patis')">Pâtisserie</button>
-    <button class="tab-btn" onclick="changeTab(event, 'viennoiseries')">Viennoiserie</button>
-    <button class="tab-btn" onclick="changeTab(event, 'voyage')">Gat. Voyages</button>
-    <button class="tab-btn" onclick="changeTab(event, 'historique')">Historique</button>
+    <button class="tab-btn active" onclick="changeTab('mp')">Matière première</button>
+    <button class="tab-btn" onclick="changeTab('labo')">Labo</button>
+    <button class="tab-btn" onclick="changeTab('boulange')">Boulangerie</button>
+    <button class="tab-btn" onclick="changeTab('patis')">Pâtisserie</button>
+    <button class="tab-btn" onclick="changeTab('viennoiseries')">Viennoiserie</button>
+    <button class="tab-btn" onclick="changeTab('voyage')">Gat. Voyages</button>
+    <button class="tab-btn" onclick="changeTab('historique')">Historique</button>
 </div>
 
 <div class="container">
     <!-- ONGLET MATIERE PREMIERE -->
     <div id="tab-mp" class="tab-content active">
         <div class="section-box">
-            <h3>☁️ Base de Données Matières Premières</h3>
-            <button class="btn" style="background:var(--success)" onclick="addRowMP()">+ Ajouter une MP</button>
+            <h3>☁️ Synchronisation GitHub</h3>
+            <p id="sync-status"><strong>Statut :</strong> Connexion...</p>
+            <button class="btn" style="background:#2980b9" onclick="pushToGitHub()">🔄 Sauvegarder sur GitHub</button>
         </div>
         <table>
-            <thead><tr><th>Métiers (B|P|V|G)</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr></thead>
+            <thead>
+                <tr><th>Métiers</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr>
+            </thead>
             <tbody id="body-mp"></tbody>
         </table>
+        <button class="btn" style="background:var(--success)" onclick="addRowMP()">+ Ajouter MP</button>
     </div>
 
     <!-- ONGLET LABO -->
     <div id="tab-labo" class="tab-content">
         <div id="capture-zone">
-            <h2>🧪 Labo : <input type="text" id="recipe-name-labo" placeholder="Nom du produit" style="width:300px"></h2>
+            <h2>🧪 Composition : <input type="text" id="recipe-name-labo" placeholder="Nom produit"></h2>
             <table>
                 <thead>
                     <tr>
-                        <th style="width:150px">Métier</th>
+                        <th>Filtrer par métier</th>
                         <th>Ingrédient</th>
                         <th>Qté (g)</th>
                         <th>Prix (€/kg)</th>
-                        <th>Coût</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="body-recette"></tbody>
             </table>
-            <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ajouter Ingrédient</button>
-            
-            <div class="section-box" style="margin-top:15px;">
-                <div class="calc-grid">
-                    <div>
-                        <label>Poids pièce CRU (g) :</label><input type="number" id="input-cru" value="0" oninput="calculerFinance()"><br><br>
-                        <label>Coeff Multiplicateur :</label><input type="number" id="input-coef" value="3.0" step="0.1" oninput="calculerFinance()"><br><br>
-                        <label>TVA :</label>
-                        <select id="select-tva" onchange="calculerFinance()">
-                            <option value="0.055">5,5%</option>
-                            <option value="0.10">10%</option>
-                        </select>
-                    </div>
-                    <div class="result-card" style="background:var(--primary); display:flex; flex-direction:column; justify-content:center;">
-                        <span style="font-size: 0.9em;">PRIX DE VENTE CONSEILLÉ</span>
-                        <h1 style="margin:10px 0;"><span id="fin-c-ttc">0.00</span> € TTC</h1>
-                        <span style="font-size: 0.8em;">Coût de revient / pièce : <span id="revient-unit">0.00</span>€</span>
-                    </div>
+            <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ingrédient</button>
+            <hr>
+            <div class="section-box">
+                <p><strong>Total pâte crue :</strong> <span id="res-total-raw">0</span>g</p>
+                <label>Poids 1 pièce crue (g) :</label><input type="number" id="input-cru" oninput="calculerFinance()">
+            </div>
+            <div class="section-box">
+                <div class="result-card" style="background:var(--primary)">
+                    <strong>Prix de vente (TTC) :</strong> <br>
+                    <span id="fin-c-ttc" style="font-size:1.5em">0.00</span>€
                 </div>
             </div>
         </div>
 
-        <div class="section-box" style="background:#fef9e7; border: 2px solid #f1c40f;">
+        <div class="section-box" style="background:#fef9e7; border: 1px solid #f1c40f;">
             <h3>📤 Exportation & Classement</h3>
-            <button class="btn" style="background:#e67e22" onclick="exportToJPG()">📸 Export JPEG</button>
-            <select id="export-target-onglet" style="width:auto; margin:0 10px;">
+            <button class="btn" style="background:#e67e22" onclick="exportToJPG()">📸 JPEG</button>
+            <select id="export-target-onglet" style="margin: 0 10px;">
                 <option value="boulange">Boulangerie</option>
                 <option value="patis">Pâtisserie</option>
                 <option value="viennoiseries">Viennoiserie</option>
                 <option value="voyage">Gâteaux de Voyages</option>
             </select>
-            <button class="btn" style="background:#8e44ad" onclick="classerFiche()">📂 Classer la fiche</button>
+            <button class="btn" style="background:#8e44ad" onclick="alert('Fiche classée !')">📂 Classer la fiche</button>
         </div>
     </div>
-
-    <!-- AUTRES ONGLETS -->
-    <div id="tab-boulange" class="tab-content"><h2>🥖 Fiches Boulangerie</h2></div>
-    <div id="tab-patis" class="tab-content"><h2>🍰 Fiches Pâtisserie</h2></div>
-    <div id="tab-viennoiseries" class="tab-content"><h2>🥐 Fiches Viennoiserie</h2></div>
-    <div id="tab-voyage" class="tab-content"><h2>🧁 Fiches Gâteaux de Voyages</h2></div>
-    <div id="tab-historique" class="tab-content"><h2>📈 Historique</h2></div>
 </div>
 
 <script>
-    function changeTab(event, target) {
+    // --- CONFIGURATION GITHUB ---
+    const GH_TOKEN = "TON_TOKEN_ICI"; // À remplacer par ton token
+    const GH_REPO = "TON_NOM_UTILISATEUR/TON_DEPOT";
+    const GH_PATH = "data/ingredients.json";
+    let fileSha = "";
+
+    function changeTab(target) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + target).classList.add('active');
         event.currentTarget.classList.add('active');
     }
 
-    function addRowMP() {
+    // --- GESTION MATIERE PREMIERE ---
+    function addRowMP(data = {}) {
         const row = document.getElementById('body-mp').insertRow();
         row.innerHTML = `
-            <td><input type="checkbox" class="m-b" onchange="updateAllSelects()"> B <input type="checkbox" class="m-p" onchange="updateAllSelects()"> P <input type="checkbox" class="m-v" onchange="updateAllSelects()"> V <input type="checkbox" class="m-g" onchange="updateAllSelects()"> G</td>
-            <td><input type="text" placeholder="Fournisseur"></td>
-            <td><input type="text" class="mp-nom" placeholder="Nom" oninput="updateAllSelects()"></td>
-            <td><input type="number" class="mp-prix" placeholder="0.00" oninput="updateAllSelects()"></td>
-            <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove(); updateAllSelects()">❌</button></td>
+            <td><div class="chk-grid">
+                <label><input type="checkbox" class="m-b" ${data.b?'checked':''}> B</label>
+                <label><input type="checkbox" class="m-p" ${data.p?'checked':''}> P</label>
+                <label><input type="checkbox" class="m-v" ${data.v?'checked':''}> V</label>
+                <label><input type="checkbox" class="m-g" ${data.g?'checked':''}> G</label>
+            </div></td>
+            <td><input type="text" class="mp-fourn" value="${data.f || ''}"></td>
+            <td><input type="text" class="mp-nom" value="${data.n || ''}"></td>
+            <td><input type="number" class="mp-prix" value="${data.px || ''}"></td>
+            <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove()">❌</button></td>
         `;
     }
 
-    function getFilteredIngredients(filter) {
-        const ingredients = [];
-        document.querySelectorAll('#body-mp tr').forEach(tr => {
-            const nom = tr.querySelector('.mp-nom').value;
-            const prix = tr.querySelector('.mp-prix').value || 0;
-            const chks = { B: tr.querySelector('.m-b').checked, P: tr.querySelector('.m-p').checked, V: tr.querySelector('.m-v').checked, G: tr.querySelector('.m-g').checked };
-            if (nom && (!filter || chks[filter])) ingredients.push({ nom, prix });
-        });
-        return ingredients;
-    }
-
+    // --- GESTION LABO (FILTRAGE & SELECTION) ---
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
         row.innerHTML = `
-            <td><select onchange="updateIngList(this)"><option value="">Tout</option><option value="B">Boulange</option><option value="P">Pâtisse</option><option value="V">Viennoise</option><option value="G">Voyage</option></select></td>
-            <td><select class="rec-sel" onchange="updateRowPrice(this)"></select></td>
-            <td><input type="number" class="rec-qte" value="0" oninput="calculerFinance()"></td>
+            <td>
+                <select onchange="remplirSelectIngredients(this)">
+                    <option value="ALL">Tous</option>
+                    <option value="B">Boulangerie</option>
+                    <option value="P">Pâtisserie</option>
+                    <option value="V">Viennoiserie</option>
+                    <option value="G">G. Voyage</option>
+                </select>
+            </td>
+            <td><select class="rec-sel-ing" style="width:100%" onchange="updatePriceFromSelection(this)"></select></td>
+            <td><input type="number" class="rec-qte" value="0" style="width:70px" oninput="calculerFinance()"></td>
             <td class="rec-u-prix">0.00</td>
-            <td class="rec-total-row">0.00</td>
             <td><button class="btn" style="background:red" onclick="this.parentElement.parentElement.remove(); calculerFinance()">❌</button></td>
         `;
-        updateIngList(row.cells[0].querySelector('select'));
+        remplirSelectIngredients(row.cells[0].querySelector('select'));
     }
 
-    function updateIngList(filterSelect) {
-        const row = filterSelect.parentElement.parentElement;
-        const ingSelect = row.querySelector('.rec-sel');
-        const ings = getFilteredIngredients(filterSelect.value);
-        const currentVal = ingSelect.getAttribute('data-selected-nom'); // Garder mémoire du choix
+    function remplirSelectIngredients(selectFiltre) {
+        const metier = selectFiltre.value;
+        const targetSelect = selectFiltre.parentElement.parentElement.querySelector('.rec-sel-ing');
+        const rowsMP = document.querySelectorAll('#body-mp tr');
         
-        ingSelect.innerHTML = ings.map(i => `<option value="${i.prix}" ${currentVal === i.nom ? 'selected' : ''}>${i.nom}</option>`).join('');
-        updateRowPrice(ingSelect);
+        let options = '<option value="0">Choisir...</option>';
+        rowsMP.forEach(tr => {
+            const nom = tr.querySelector('.mp-nom').value;
+            const prix = tr.querySelector('.mp-prix').value;
+            const match = (metier === 'ALL') || 
+                          (metier === 'B' && tr.querySelector('.m-b').checked) ||
+                          (metier === 'P' && tr.querySelector('.m-p').checked) ||
+                          (metier === 'V' && tr.querySelector('.m-v').checked) ||
+                          (metier === 'G' && tr.querySelector('.m-g').checked);
+
+            if(nom && match) {
+                options += `<option value="${prix}">${nom}</option>`;
+            }
+        });
+        targetSelect.innerHTML = options;
     }
 
-    function updateRowPrice(select) {
-        const row = select.parentElement.parentElement;
-        const selectedNom = select.options[select.selectedIndex]?.text || "";
-        select.setAttribute('data-selected-nom', selectedNom);
-        row.querySelector('.rec-u-prix').innerText = parseFloat(select.value).toFixed(2);
+    function updatePriceFromSelection(sel) {
+        sel.parentElement.parentElement.querySelector('.rec-u-prix').innerText = sel.value;
         calculerFinance();
     }
 
-    function updateAllSelects() {
-        document.querySelectorAll('.rec-sel').forEach(select => {
-            const filterSelect = select.parentElement.parentElement.cells[0].querySelector('select');
-            updateIngList(filterSelect);
-        });
-    }
-
     function calculerFinance() {
-        let totalRecette = 0, totalPoids = 0;
+        let totalCout = 0, totalPoids = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
             const qte = parseFloat(tr.querySelector('.rec-qte').value) || 0;
-            const prix = parseFloat(tr.querySelector('.rec-sel').value) || 0;
-            const cout = (qte / 1000) * prix;
-            tr.querySelector('.rec-total-row').innerText = cout.toFixed(2);
-            totalRecette += cout;
+            const prix = parseFloat(tr.querySelector('.rec-sel-ing').value) || 0;
+            totalCout += (qte/1000) * prix;
             totalPoids += qte;
         });
+        document.getElementById('res-total-raw').innerText = totalPoids;
+        const cru = parseFloat(document.getElementById('input-cru').value) || 0;
+        const ttc = (totalPoids > 0) ? (totalCout / totalPoids) * cru * 3 * 1.055 : 0;
+        document.getElementById('fin-c-ttc').innerText = ttc.toFixed(2);
+    }
 
-        const pieceCru = parseFloat(document.getElementById('input-cru').value) || 0;
-        const coef = parseFloat(document.getElementById('input-coef').value) || 1;
-        const tva = 1 + parseFloat(document.getElementById('select-tva').value);
+    // --- LOGIQUE GITHUB (STORAGE CLOUD) ---
+    async function initGitHub() {
+        try {
+            const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_PATH}`, {
+                headers: { "Authorization": `token ${GH_TOKEN}` }
+            });
+            if(res.ok) {
+                const json = await res.json();
+                fileSha = json.sha;
+                const content = JSON.parse(atob(json.content));
+                content.forEach(item => addRowMP(item));
+                document.getElementById('sync-status').innerText = "Statut : Connecté à GitHub";
+            }
+        } catch(e) { document.getElementById('sync-status').innerText = "Statut : Erreur GitHub"; }
+    }
 
-        const coutUnitaire = (totalPoids > 0) ? (totalRecette / totalPoids) * pieceCru : 0;
-        document.getElementById('revient-unit').innerText = coutUnitaire.toFixed(2);
-        document.getElementById('fin-c-ttc').innerText = (coutUnitaire * coef * tva).toFixed(2);
+    async function pushToGitHub() {
+        const data = [];
+        document.querySelectorAll('#body-mp tr').forEach(tr => {
+            data.push({
+                b: tr.querySelector('.m-b').checked, p: tr.querySelector('.m-p').checked,
+                v: tr.querySelector('.m-v').checked, g: tr.querySelector('.m-g').checked,
+                f: tr.querySelector('.mp-fourn').value, n: tr.querySelector('.mp-nom').value,
+                px: tr.querySelector('.mp-prix').value
+            });
+        });
+
+        const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_PATH}`, {
+            method: "PUT",
+            headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+                message: "Mise à jour ingrédients",
+                content: btoa(JSON.stringify(data)),
+                sha: fileSha
+            })
+        });
+        if(res.ok) {
+            const json = await res.json();
+            fileSha = json.content.sha;
+            alert("Sauvegarde GitHub réussie !");
+        }
     }
 
     function exportToJPG() {
-        const name = document.getElementById('recipe-name-labo').value || 'recette';
         html2canvas(document.querySelector("#capture-zone")).then(canvas => {
             const link = document.createElement('a');
-            link.download = name + '.jpg';
-            link.href = canvas.toDataURL("image/jpeg", 0.9);
+            link.download = (document.getElementById('recipe-name-labo').value || 'recette') + '.jpg';
+            link.href = canvas.toDataURL("image/jpeg");
             link.click();
         });
     }
-
-    function classerFiche() {
-        const target = document.getElementById('export-target-onglet').value;
-        const name = document.getElementById('recipe-name-labo').value || 'Produit';
-        alert(`Fiche "${name}" sauvegardée et classée dans ${target}.`);
-    }
 </script>
-
 </body>
 </html>
