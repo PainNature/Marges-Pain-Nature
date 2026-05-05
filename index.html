@@ -2,187 +2,253 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Boulangerie Pro - V30.5</title>
+    <title>Boulangerie Pro - V30.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
-        .nav-tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 2px solid #bdc3c7; overflow-x: auto; }
-        .tab-btn { padding: 10px 15px; border: none; background: #95a5a6; color: white; cursor: pointer; font-weight: bold; white-space: nowrap; }
-        .tab-btn.active { background: var(--primary); }
-        .container { background: white; padding: 20px; border-radius: 0 5px 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .tab-content { display: none; }
+        
+        /* NAVIGATION ET SURBRILLANCE */
+        .nav-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { padding: 12px 20px; border: none; background: #bdc3c7; color: white; cursor: pointer; font-weight: bold; border-radius: 5px 5px 0 0; transition: 0.3s; white-space: nowrap; }
+        .tab-btn.active { background: var(--primary); color: white; transform: translateY(-2px); }
+        
+        .container { background: white; padding: 25px; border-radius: 0 5px 5px 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
-        .section-box { border: 1px solid #e1e1e1; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fafafa; }
-        .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .result-card { background: #34495e; color: white; padding: 15px; border-radius: 5px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th, td { padding: 8px; border: 1px solid #ddd; }
-        .btn { padding: 8px 12px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
-        input, select { padding: 6px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        .chk-grid { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 0.75em; gap: 2px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .section-box { border: 1px solid #e1e1e1; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #fafafa; }
+        .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        
+        .result-card { background: var(--secondary); color: white; padding: 25px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f8f9fa; color: var(--secondary); }
+        
+        .btn { padding: 10px 18px; border: none; cursor: pointer; color: white; border-radius: 5px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        .chk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
     </style>
 </head>
 <body>
 
-<div class="nav-tabs">
-    <button class="tab-btn active" onclick="changeTab('mp')">Matière première</button>
-    <button class="tab-btn" onclick="changeTab('labo')">Labo</button>
-    <button class="tab-btn" onclick="changeTab('boulange')">Boulangerie</button>
-    <button class="tab-btn" onclick="changeTab('patis')">Pâtisserie</button>
-    <button class="tab-btn" onclick="changeTab('viennoiseries')">Viennoiserie</button>
-    <button class="tab-btn" onclick="changeTab('voyage')">Gat. Voyages</button>
-    <button class="tab-btn" onclick="changeTab('historique')">Historique</button>
+<div class="nav-tabs" id="mainNav">
+    <button class="tab-btn active" onclick="showTab('mp')">Matière première</button>
+    <button class="tab-btn" onclick="showTab('labo')">Labo</button>
+    <button class="tab-btn" onclick="showTab('boulange')">Boulangerie</button>
+    <button class="tab-btn" onclick="showTab('patis')">Pâtisserie</button>
+    <button class="tab-btn" onclick="showTab('viennoiseries')">Viennoiserie</button>
+    <button class="tab-btn" onclick="showTab('voyage')">Gat. Voyages</button>
+    <button class="tab-btn" onclick="showTab('historique')">Historique</button>
 </div>
 
 <div class="container">
-    <!-- ONGLET MP -->
+    <!-- ONGLET MATIÈRE PREMIÈRE -->
     <div id="tab-mp" class="tab-content active">
-        <div class="section-box">
-            <h3>☁️ Cloud GitHub (ID: 99caadd...)</h3>
-            <button class="btn" style="background:#2980b9" onclick="runFullSync()">🔄 Synchroniser Cloud</button>
-            <button class="btn" style="background:var(--success)" onclick="exportJSON()">💾 Export JSON</button>
+        <div class="section-box" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin:0;">☁️ Synchronisation Cloud GitHub</h3>
+                <small id="sync-status">Connecté à l'ID : 99caadd...</small>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="background:#2980b9" onclick="runFullSync()">🔄 Lancer Synchro</button>
+                <button class="btn" style="background:var(--success)" onclick="exportJSON()">💾 Export JSON</button>
+            </div>
         </div>
         <table>
-            <thead><tr><th>Métiers</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Action</th></tr></thead>
+            <thead>
+                <tr><th>Usage (B-P-V-G)</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/KG</th><th>Suppr.</th></tr>
+            </thead>
             <tbody id="body-mp"></tbody>
         </table>
-        <button class="btn" style="background:var(--success)" onclick="addRowMP()">+ Ajouter MP</button>
+        <button class="btn" style="background:var(--success)" onclick="addRowMP()">+ Ajouter une ligne</button>
     </div>
 
-    <!-- ONGLET LABO -->
+    <!-- ONGLET LABO (PARAMÉTRABLE) -->
     <div id="tab-labo" class="tab-content">
-        <div id="capture-zone" style="padding:15px; background:white;">
-            <h2 style="color:var(--primary)">🧪 Fiche Technique : <input type="text" placeholder="Nom produit" style="width:200px; font-size:0.8em;"></h2>
-            
-            <table>
-                <thead><tr><th>Métier</th><th>Ingrédient (Menu Déroulant)</th><th>Qté (g)</th><th>Prix Unitaire</th><th>Total</th><th>Action</th></tr></thead>
-                <tbody id="body-recette"></tbody>
-            </table>
-            <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ajouter Ingrédient</button>
+        <div id="capture-zone">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 style="margin:0;">🧪 FICHE TECHNIQUE</h2>
+                <input type="text" id="recipe-name" placeholder="Nom du produit..." style="width:300px; font-weight:bold;">
+            </div>
 
-            <div class="calc-grid" style="margin-top:20px;">
+            <div class="section-box">
+                <h4>1. Ingrédients (Sélection dynamique)</h4>
+                <table id="table-recette">
+                    <thead>
+                        <tr><th>Métier</th><th>Ingrédient</th><th>Qté (g)</th><th>Prix/kg</th><th>Sous-total</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="body-recette"></tbody>
+                </table>
+                <button class="btn" style="background:var(--success)" onclick="addRowRecette()">+ Ajouter ingrédient</button>
+            </div>
+
+            <div class="calc-grid">
+                <!-- Zone Rendement -->
                 <div class="section-box">
-                    <h4>⚖️ Rendement</h4>
-                    <label>Poids 1 pièce crue (g) :</label>
-                    <input type="number" id="input-cru" value="0" oninput="calculerFinance()">
-                    <label>Perte cuisson (%) :</label>
-                    <input type="number" id="input-perte" value="10" oninput="calculerFinance()">
+                    <h4>2. Rendement & Cuisson</h4>
+                    <label>Poids total pâte (g) :</label>
+                    <input type="number" id="res-total-raw" readonly style="background:#eee; margin-bottom:10px;">
+                    <label>Poids pièce crue (g) :</label>
+                    <input type="number" id="input-cru" value="0" oninput="calculerTout()">
+                    <label style="margin-top:10px; display:block;">Perte cuisson (%) :</label>
+                    <input type="number" id="input-perte" value="15" oninput="calculerTout()">
                 </div>
+
+                <!-- Zone Emballage (Restaurée) -->
                 <div class="section-box">
-                    <h4>💰 Marges</h4>
-                    <label>Coeff. multiplicateur :</label>
-                    <input type="number" id="input-coef" value="3.5" step="0.1" oninput="calculerFinance()">
-                    <label>TVA (%) :</label>
-                    <select id="input-tva" onchange="calculerFinance()">
-                        <option value="5.5">5.5%</option>
-                        <option value="10">10%</option>
-                        <option value="20">20%</option>
+                    <h4>3. Emballage & Frais</h4>
+                    <label>Coût emballage unité (€) :</label>
+                    <input type="number" id="input-emb" value="0" step="0.01" oninput="calculerTout()">
+                    <label style="margin-top:10px; display:block;">Décoration / Etiquette (€) :</label>
+                    <input type="number" id="input-decor" value="0" step="0.01" oninput="calculerTout()">
+                </div>
+
+                <!-- Zone Financière -->
+                <div class="section-box">
+                    <h4>4. Marges & Taxes</h4>
+                    <label>Coefficient Multiplicateur :</label>
+                    <input type="number" id="input-coef" value="4" step="0.1" oninput="calculerTout()">
+                    <label style="margin-top:10px; display:block;">TVA (%) :</label>
+                    <select id="input-tva" onchange="calculerTout()">
+                        <option value="5.5">5.5% (Boulangerie)</option>
+                        <option value="10">10% (Traiteur)</option>
+                        <option value="20">20% (Luxe)</option>
                     </select>
                 </div>
-                <div class="result-card">
-                    <h4>PRIX TTC CONSEILLÉ</h4>
-                    <div style="font-size:2em;"><span id="fin-c-ttc">0.00</span> €</div>
+            </div>
+
+            <div class="result-card" style="margin-top:20px;">
+                <h3 style="margin:0; opacity:0.9;">PRIX DE VENTE PUBLIC (TTC)</h3>
+                <div style="font-size:3.5em; font-weight:bold;"><span id="fin-c-ttc">0.00</span> €</div>
+                <div style="display:flex; justify-content: space-around; margin-top:15px; border-top:1px solid rgba(255,255,255,0.2); padding-top:10px;">
+                    <span>Coût mat. : <b id="res-cout-mat">0.00</b>€</span>
+                    <span>Marge brute : <b id="res-marge">0.00</b>€</span>
                 </div>
             </div>
         </div>
 
-        <div class="section-box" style="margin-top:20px; display:flex; gap:10px;">
-            <button class="btn" style="background:#e67e22" onclick="exportToJPG()">📸 SAUVEGARDER JPEG</button>
-            <button class="btn" style="background:#8e44ad" onclick="alert('Fiche envoyée vers l\'onglet métier !')">📂 CLASSER FICHE</button>
+        <div style="margin-top:25px; display:flex; gap:15px;">
+            <button class="btn" style="background:#e67e22" onclick="exportToJPG()">📸 Exporter en Image (JPG)</button>
+            <button class="btn" style="background:#8e44ad" onclick="alert('Fiche classée !')">📂 Classer la fiche</button>
         </div>
     </div>
+
+    <!-- AUTRES ONGLETS (Vides mais fonctionnels) -->
+    <div id="tab-boulange" class="tab-content"><div class="section-box"><h3>Fiches Boulangerie</h3><p>Aucune fiche classée.</p></div></div>
+    <div id="tab-patis" class="tab-content"><div class="section-box"><h3>Fiches Pâtisserie</h3></div></div>
+    <div id="tab-viennoiseries" class="tab-content"><div class="section-box"><h3>Fiches Viennoiserie</h3></div></div>
+    <div id="tab-voyage" class="tab-content"><div class="section-box"><h3>Gâteaux de Voyage</h3></div></div>
+    <div id="tab-historique" class="tab-content"><div class="section-box"><h3>Historique des calculs</h3></div></div>
 </div>
 
 <script>
-    const CLOUD_ID = "99caadd65ae7d235bb34c56975410acd";
     let GH_CONFIG = { token: "", repo: "", path: "ingredients.json", sha: "" };
 
-    function changeTab(target) {
+    // NAVIGATION AVEC SURBRILLANCE
+    function showTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.getElementById('tab-' + target).classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
     }
 
+    // GESTION MATIÈRES PREMIÈRES
     function addRowMP(data = {}) {
         const row = document.getElementById('body-mp').insertRow();
-        row.innerHTML = `<td><div class="chk-grid">
-            <label><input type="checkbox" class="m-b" ${data.b?'checked':''}> B</label>
-            <label><input type="checkbox" class="m-p" ${data.p?'checked':''}> P</label>
-            <label><input type="checkbox" class="m-v" ${data.v?'checked':''}> V</label>
-            <label><input type="checkbox" class="m-g" ${data.g?'checked':''}> G</label></div></td>
+        row.innerHTML = `
+            <td><div class="chk-grid">
+                <label><input type="checkbox" class="m-b" ${data.b?'checked':''}> B</label>
+                <label><input type="checkbox" class="m-p" ${data.p?'checked':''}> P</label>
+                <label><input type="checkbox" class="m-v" ${data.v?'checked':''}> V</label>
+                <label><input type="checkbox" class="m-g" ${data.g?'checked':''}> G</label>
+            </div></td>
             <td><input type="text" class="mp-fourn" value="${data.f || ''}"></td>
             <td><input type="text" class="mp-nom" value="${data.n || ''}"></td>
             <td><input type="number" class="mp-prix" value="${data.px || ''}"></td>
-            <td><button onclick="this.parentElement.parentElement.remove()" style="background:red; color:white; border:none; cursor:pointer;">❌</button></td>`;
+            <td><button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:1.2em;">❌</button></td>`;
     }
 
-    // --- LE MENU DEROULANT DYNAMIQUE ---
+    // LOGIQUE LABO & CALCULS
     function addRowRecette() {
         const row = document.getElementById('body-recette').insertRow();
         row.innerHTML = `
-            <td><select onchange="updateIngList(this)"><option value="ALL">Tous</option><option value="B">B</option><option value="P">P</option><option value="V">V</option><option value="G">G</option></select></td>
+            <td><select onchange="updateIngList(this)" style="width:80px;"><option value="ALL">Tous</option><option value="B">B</option><option value="P">P</option><option value="V">V</option><option value="G">G</option></select></td>
             <td><select class="rec-sel" onchange="updateRowPrice(this)"></select></td>
-            <td><input type="number" class="rec-qte" value="0" oninput="calculerFinance()"></td>
+            <td><input type="number" class="rec-qte" value="0" oninput="calculerTout()"></td>
             <td class="rec-u-prix">0.00</td>
-            <td class="rec-subtotal">0.00</td>
-            <td><button onclick="this.parentElement.parentElement.remove(); calculerFinance()" style="background:red; color:white; border:none;">❌</button></td>`;
+            <td class="rec-sub">0.00</td>
+            <td><button onclick="this.parentElement.parentElement.remove(); calculerTout()" style="background:red; color:white; border:none; border-radius:3px;">❌</button></td>`;
         updateIngList(row.cells[0].querySelector('select'));
     }
 
     function updateIngList(filter) {
         const sel = filter.parentElement.parentElement.querySelector('.rec-sel');
         const metier = filter.value;
-        let options = '<option value="0">Choisir ingrédient...</option>';
+        let options = '<option value="0">-- Choisir --</option>';
         document.querySelectorAll('#body-mp tr').forEach(tr => {
             const nom = tr.querySelector('.mp-nom').value;
             const prix = tr.querySelector('.mp-prix').value;
-            const match = (metier==='ALL') || (metier==='B' && tr.querySelector('.m-b').checked) || (metier==='P' && tr.querySelector('.m-p').checked) || (metier==='V' && tr.querySelector('.m-v').checked) || (metier==='G' && tr.querySelector('.m-g').checked);
-            if(nom && match) options += `<option value="${prix}">${nom}</option>`;
+            const m = (metier==='ALL') || (metier==='B' && tr.querySelector('.m-b').checked) || (metier==='P' && tr.querySelector('.m-p').checked) || (metier==='V' && tr.querySelector('.m-v').checked) || (metier==='G' && tr.querySelector('.m-g').checked);
+            if(nom && m) options += `<option value="${prix}">${nom}</option>`;
         });
         sel.innerHTML = options;
     }
 
     function updateRowPrice(sel) {
         sel.parentElement.parentElement.querySelector('.rec-u-prix').innerText = sel.value;
-        calculerFinance();
+        calculerTout();
     }
 
-    function calculerFinance() {
-        let totalCout = 0, totalPoids = 0;
+    function calculerTout() {
+        let coutTotalMat = 0, poidsPate = 0;
         document.querySelectorAll('#body-recette tr').forEach(tr => {
-            const qte = parseFloat(tr.querySelector('.rec-qte').value) || 0;
-            const prix = parseFloat(tr.querySelector('.rec-sel').value) || 0;
-            const sub = (qte/1000)*prix;
-            tr.querySelector('.rec-subtotal').innerText = sub.toFixed(2);
-            totalCout += sub; totalPoids += qte;
+            const q = parseFloat(tr.querySelector('.rec-qte').value) || 0;
+            const p = parseFloat(tr.querySelector('.rec-sel').value) || 0;
+            const sub = (q/1000) * p;
+            tr.querySelector('.rec-sub').innerText = sub.toFixed(2);
+            coutTotalMat += sub; poidsPate += q;
         });
 
-        const piece = parseFloat(document.getElementById('input-cru').value) || 0;
-        const coef = parseFloat(document.getElementById('input-coef').value) || 1;
-        const tva = 1 + (parseFloat(document.getElementById('input-tva').value)/100);
-
-        if(totalPoids > 0 && piece > 0) {
-            const prixVente = (totalCout / totalPoids) * piece * coef * tva;
-            document.getElementById('fin-c-ttc').innerText = prixVente.toFixed(2);
+        document.getElementById('res-total-raw').value = poidsPate.toFixed(0);
+        const poidsPiece = parseFloat(document.getElementById('input-cru').value) || 0;
+        
+        if(poidsPate > 0 && poidsPiece > 0) {
+            const coutMatPiece = (coutTotalMat / poidsPate) * poidsPiece;
+            const emb = parseFloat(document.getElementById('input-emb').value) || 0;
+            const decor = parseFloat(document.getElementById('input-decor').value) || 0;
+            const revivient = coutMatPiece + emb + decor;
+            
+            const coef = parseFloat(document.getElementById('input-coef').value) || 1;
+            const tva = 1 + (parseFloat(document.getElementById('input-tva').value) / 100);
+            
+            const pvTTC = revivient * coef * tva;
+            
+            document.getElementById('res-cout-mat').innerText = coutMatPiece.toFixed(2);
+            document.getElementById('res-marge').innerText = (pvTTC/tva - revivient).toFixed(2);
+            document.getElementById('fin-c-ttc').innerText = pvTTC.toFixed(2);
         }
     }
 
-    // --- SAUVEGARDE JPEG ---
+    // EXPORT IMAGE
     function exportToJPG() {
-        html2canvas(document.querySelector("#capture-zone")).then(canvas => {
+        const zone = document.querySelector("#capture-zone");
+        html2canvas(zone, { scale: 2 }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'Fiche-Boulangerie.jpg';
+            link.download = `FT-${document.getElementById('recipe-name').value || 'Produit'}.jpg`;
             link.href = canvas.toDataURL("image/jpeg", 0.9);
             link.click();
         });
     }
 
-    // --- FONCTION CLOUD ---
+    // CLOUD GITHUB
     async function runFullSync() {
-        GH_CONFIG.token = GH_CONFIG.token || prompt("Token GitHub :");
-        GH_CONFIG.repo = GH_CONFIG.repo || prompt("Dépôt (User/Repo) :");
+        if(!GH_CONFIG.token) GH_CONFIG.token = prompt("Clé GitHub (Token) :");
+        if(!GH_CONFIG.repo) GH_CONFIG.repo = prompt("Dépôt (ex: pseudo/boulangerie) :");
         if(!GH_CONFIG.token || !GH_CONFIG.repo) return;
-        
+
         const data = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
             b: tr.querySelector('.m-b').checked, p: tr.querySelector('.m-p').checked,
             v: tr.querySelector('.m-v').checked, g: tr.querySelector('.m-g').checked,
@@ -196,25 +262,25 @@
             });
             if(res.ok) GH_CONFIG.sha = (await res.json()).sha;
 
-            await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
+            const putRes = await fetch(`https://api.github.com/repos/${GH_CONFIG.repo}/contents/${GH_CONFIG.path}`, {
                 method: "PUT",
-                headers: { "Authorization": `token ${GH_CONFIG.token}` },
+                headers: { "Authorization": `token ${GH_CONFIG.token}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: "Sync Cloud " + CLOUD_ID,
+                    message: "Sync Automatique",
                     content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))),
                     sha: GH_CONFIG.sha
                 })
             });
-            alert("✅ Données synchronisées !");
-        } catch(e) { alert("❌ Erreur Cloud"); }
+            if(putRes.ok) alert("✅ Synchronisation réussie !");
+        } catch(e) { alert("❌ Erreur de connexion au Cloud."); }
     }
 
     function exportJSON() {
-        const data = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
+        const rows = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
             nom: tr.querySelector('.mp-nom').value, prix: tr.querySelector('.mp-prix').value
         }));
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "data.json"; a.click();
+        const blob = new Blob([JSON.stringify(rows, null, 2)], {type: "application/json"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "mp.json"; a.click();
     }
 </script>
 </body>
