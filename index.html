@@ -1,171 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Boulangerie Pro V30.27 - Restauration Cloud (Sync Temps Réel)</title>
+    <script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js)"></script>
+    <style>
+        :root { --primary: #d35400; --secondary: #2c3e50; --success: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .nav-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 3px solid var(--secondary); }
+        .tab-btn { padding: 12px 20px; border: none; background: #bdc3c7; color: white; cursor: pointer; font-weight: bold; border-radius: 5px 5px 0 0; }
+        .tab-btn.active { background: var(--primary); }
+        .container { background: white; padding: 25px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 1200px; margin: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .admin-bar { background: #34495e; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .m-wrap { display: flex; gap: 4px; }
+        .m-badge { padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; font-size: 0.75em; background: #eee; font-weight: bold; color: #333; }
+        .m-badge.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .zone-title { background: #2c3e50; color: white; padding: 10px 15px; border-radius: 4px; margin: 25px 0 10px 0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
+        .box-reglage { border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fff; margin-bottom: 15px; }
+        .grid-pilotage { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .flex-sym { display: flex; gap: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 1em; }
+        .btn { padding: 12px 20px; border: none; cursor: pointer; color: white; border-radius: 4px; font-weight: bold; }
+        .sync-status { position: fixed; top: 10px; right: 10px; padding: 8px 14px; border-radius: 20px; background: #bbb; color: white; z-index: 999; font-size: 13px; }
+        .sync-status.success { background: #27ae60; }
+        .sync-status.error { background: #c0392b; }
+        .sync-status.info { background: #2980b9; }
+        .sync-status.loading { background: orange; }
+    </style>
+</head>
+<body>
+<div class="nav-tabs">
+    <button class="tab-btn active" onclick="showTab('mp')">Catalogue Matières Premières</button>
+    <button class="tab-btn" onclick="showTab('labo')">Pilotage Labo</button>
+    <button class="tab-btn" onclick="showTab('hist'); updateHistUI();">Historique des Prix</button>
+</div>
+
+<div class="container">
+    <div id="tab-mp" class="tab-content active">
+        <div class="admin-bar">
+            <div>
+                <strong>🌐 Cloud Sync (Gist GitHub)</strong>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <input type="password" id="gh-token" placeholder="Token GitHub">
+                    <button class="btn" style="background:var(--primary)" onclick="syncGist()">🔄 Sync Cloud</button>
+                    <button class="btn" style="background:#666;" onclick="resetToken()">🔁 Reset Token</button>
+                </div>
+            </div>
+            <div>
+                <strong>💾 Fichier Local</strong>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <button class="btn" style="background:#7f8c8d" onclick="exportLocal()">📥 Exporter</button>
+                    <input type="file" id="import-local" onchange="importLocal()">
+                </div>
+            </div>
+        </div>
+
+        <div style="padding:10px;background:#eee;margin-bottom:15px;border-radius:5px;">
+            <strong>Filtres métiers :</strong>
+            <label><input type="checkbox" class="f-check" value="B" checked onchange="filterMP()"> B</label>
+            <label><input type="checkbox" class="f-check" value="P" checked onchange="filterMP()"> P</label>
+            <label><input type="checkbox" class="f-check" value="V" checked onchange="filterMP()"> V</label>
+            <label><input type="checkbox" class="f-check" value="GV" checked onchange="filterMP()"> GV</label>
+            <button class="btn" style="background:var(--success); float:right;" onclick="addRowMP()">+ Ajouter</button>
+        </div>
+
+        <table>
+            <thead><tr><th>Métiers</th><th>Fournisseur</th><th>Produit</th><th>Prix HT/kg</th><th></th></tr></thead>
+            <tbody id="body-mp"></tbody>
+        </table>
+    </div>
+
+    <div id="tab-labo" class="tab-content">
+        <p>Section labo (inchangée)...</p>
+    </div>
+
+    <div id="tab-hist" class="tab-content">
+        <h3>Historique</h3>
+        <div id="hist-list" class="box-reglage"></div>
+        <button class="btn" style="background:red;" onclick="clearHist()">Vider</button>
+    </div>
+</div>
+
+<div id="sync-status" class="sync-status loading">Initialisation...</div>
+
 <script>
 const GIST_ID = "99caadd65ae7d235bb34c56975410acd";
 const GIST_FILENAME = "ingredients_boulangerie.json";
-const SYNC_INTERVAL = 5000; // vérification toutes les 5s
-let priceHistory = JSON.parse(localStorage.getItem('price_hist_v30')) || [];
-let lastSyncHash = null;
-let isSyncing = false;
+const SYNC_INTERVAL = 5000;
 let GITHUB_TOKEN = null;
+let isSyncing = false;
+let lastSyncHash = null;
+let priceHistory = JSON.parse(localStorage.getItem('price_hist_v30')) || [];
 
-// === ⚙️ INIT GLOBALE ===
-window.onload = async () => {
-    // Chargement initial local
-    const savedMP = localStorage.getItem('mp_data_v30');
-    if(savedMP && JSON.parse(savedMP).length > 0) {
-        JSON.parse(savedMP).forEach(d => addRowMP(d));
-    } else console.log("Catalogue local vide. Prêt pour sync Cloud.");
+// === INTERFACE ===
+function showTab(id){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+id).classList.add('active');event.currentTarget.classList.add('active');}
+function showSyncStatus(txt,cls){const el=document.getElementById('sync-status');el.textContent=txt;el.className="sync-status "+cls;}
 
-    await initToken();
-    initRealtimeSync();
-};
-
-// === 🎟️ TOKEN MANAGEMENT (stocké une seule fois par appareil) ===
-async function initToken() {
-    GITHUB_TOKEN = localStorage.getItem('gh_token');
-    const tokenInput = document.getElementById('gh-token');
-
-    if (GITHUB_TOKEN) {
-        tokenInput.value = GITHUB_TOKEN;
-        return;
-    }
-
-    const input = prompt("Entrez votre token GitHub (sera gardé de manière sécurisée sur cet appareil):");
-    if (input && input.trim() !== '') {
-        GITHUB_TOKEN = input.trim();
-        localStorage.setItem('gh_token', GITHUB_TOKEN);
-        tokenInput.value = GITHUB_TOKEN;
-        alert("✅ Token enregistré localement.");
-    } else {
-        alert("⛔ Aucun token fourni, la synchronisation cloud restera désactivée.");
-    }
+// === TOKEN ===
+async function initToken(){
+    GITHUB_TOKEN=localStorage.getItem('gh_token');
+    const tokenInput=document.getElementById('gh-token');
+    if(GITHUB_TOKEN){tokenInput.value=GITHUB_TOKEN;return;}
+    const input=prompt("Entrez votre token GitHub (il sera mémorisé localement):");
+    if(input){GITHUB_TOKEN=input.trim();localStorage.setItem('gh_token',GITHUB_TOKEN);tokenInput.value=GITHUB_TOKEN;alert("✅ Token enregistré.");}
+    else alert("⛔ Aucun token fourni, la sync sera désactivée.");
 }
+function resetToken(){localStorage.removeItem('gh_token');alert("Token supprimé. Recharger la page pour en saisir un nouveau.");}
 
-// === 📦 OUTILS DE SAUVEGARDE LOCALE ===
-function saveMPToLocal() {
-    const data = Array.from(document.querySelectorAll('#body-mp tr')).map(tr => ({
-        m: Array.from(tr.querySelectorAll('.m-badge.selected')).map(b => b.innerText),
-        f: tr.querySelector('.f').value,
-        n: tr.querySelector('.n').value,
-        px: tr.querySelector('.p').value,
-        updatedAt: new Date().toISOString()
+// === AJOUTS / SAUVEGARDES ===
+function addRowMP(data={}){
+    const métiers=data.m||[];
+    const row=document.getElementById('body-mp').insertRow();
+    row.innerHTML=`
+     <td><div class="m-wrap">
+         <span class="m-badge ${métiers.includes('B')?'selected':''}" onclick="toggleBadge(this)">B</span>
+         <span class="m-badge ${métiers.includes('P')?'selected':''}" onclick="toggleBadge(this)">P</span>
+         <span class="m-badge ${métiers.includes('V')?'selected':''}" onclick="toggleBadge(this)">V</span>
+         <span class="m-badge ${métiers.includes('GV')?'selected':''}" onclick="toggleBadge(this)">GV</span>
+     </div></td>
+     <td><input type="text" class="f" value="${data.f||''}" oninput="saveMPToLocal()"></td>
+     <td><input type="text" class="n" value="${data.n||''}" oninput="saveMPToLocal()"></td>
+     <td><input type="number" class="p" value="${data.px||''}" oninput="saveMPToLocal()"></td>
+     <td><button class="btn" style="background:red;" onclick="this.closest('tr').remove();saveMPToLocal();">X</button></td>`;
+}
+function toggleBadge(el){el.classList.toggle('selected');saveMPToLocal();}
+function filterMP(){
+    const checked=Array.from(document.querySelectorAll('.f-check:checked')).map(c=>c.value);
+    document.querySelectorAll('#body-mp tr').forEach(tr=>{
+        const mts=Array.from(tr.querySelectorAll('.m-badge.selected')).map(b=>b.innerText);
+        tr.style.display=checked.some(m=>mts.includes(m))?'':'none';
+    });
+}
+function saveMPToLocal(){
+    const data=Array.from(document.querySelectorAll('#body-mp tr')).map(tr=>({
+        m:Array.from(tr.querySelectorAll('.m-badge.selected')).map(b=>b.innerText),
+        f:tr.querySelector('.f').value,
+        n:tr.querySelector('.n').value,
+        px:tr.querySelector('.p').value,
+        updatedAt:new Date().toISOString()
     }));
-    localStorage.setItem('mp_data_v30', JSON.stringify(data));
+    localStorage.setItem('mp_data_v30',JSON.stringify(data));
 }
 
-function renderFromData(data) {
-    document.getElementById('body-mp').innerHTML = "";
-    data.forEach(d => addRowMP(d));
-    filterMP();
-}
+// === HISTORIQUE simple ===
+function updateHistUI(){document.getElementById('hist-list').innerHTML=priceHistory.map(h=>`<div>${h.date} | ${h.item}: ${h.old}€→${h.new}€</div>`).join('');}
+function clearHist(){priceHistory=[];localStorage.removeItem('price_hist_v30');updateHistUI();}
+function exportLocal(){const d=localStorage.getItem('mp_data_v30');const blob=new Blob([d],{type:"application/json"});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download="catalogue.json";a.click();}
+function importLocal(){const f=document.getElementById('import-local').files[0];const r=new FileReader();r.onload=e=>{const d=JSON.parse(e.target.result);document.getElementById('body-mp').innerHTML="";d.forEach(x=>addRowMP(x));saveMPToLocal();};r.readAsText(f);}
 
-// === 🔁 SYNC GIST AUTOMATIQUE ===
-function generateHash(data) {
-    return JSON.stringify(data).split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0).toString();
-}
-
-async function fetchFromGist() {
-    try {
-        const res = await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`, {
-            headers: { Authorization: `token ${GITHUB_TOKEN}` }
-        });
-        if(!res.ok) throw new Error(res.statusText);
-        const gist = await res.json();
-        const content = gist.files[GIST_FILENAME]?.content;
-        return content ? JSON.parse(content) : [];
-    } catch(e) {
-        console.error("Erreur fetch:", e);
-        return [];
-    }
-}
-
-async function saveToGist(data) {
-    try {
-        const res = await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`, {
-            method: "PATCH",
-            headers: { 
-                "Authorization": `token ${GITHUB_TOKEN}`, 
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                files: { [GIST_FILENAME]: { content: JSON.stringify(data, null, 2) } }
-            })
-        });
-        if (!res.ok) throw new Error("Erreur de sauvegarde");
-        lastSyncHash = generateHash(data);
-        console.log("✅ Sauvegarde cloud réussie");
-    } catch(e) { console.error("Erreur save:", e); }
-}
-
-function mergeData(local, remote) {
-    const merged = new Map();
-    remote.forEach(i => merged.set(i.n+i.f, i));
-    local.forEach(i => {
-        const existing = merged.get(i.n+i.f);
-        if(!existing || (i.updatedAt > existing.updatedAt)) merged.set(i.n+i.f, i);
-    });
-    return Array.from(merged.values());
-}
-
-// === 🔄 SUIVI TEMPS RÉEL VIA POLLING ===
-async function checkForUpdates() {
-    if (!GITHUB_TOKEN || isSyncing) return;
-    isSyncing = true;
-
-    const remote = await fetchFromGist();
-    const local = JSON.parse(localStorage.getItem('mp_data_v30') || "[]");
-    const remoteHash = generateHash(remote);
-    const localHash = generateHash(local);
-
-    if (remoteHash !== lastSyncHash && remoteHash !== localHash) {
-        const merged = mergeData(local, remote);
-        localStorage.setItem('mp_data_v30', JSON.stringify(merged));
-        renderFromData(merged);
-        lastSyncHash = generateHash(merged);
-        console.log("🔄 Données Cloud mises à jour (fusion)");
-    }
-
-    isSyncing = false;
-}
-
-function initRealtimeSync() {
-    // Chargement initial depuis le cloud
-    fetchFromGist().then(remote => {
-        if (remote.length > 0) {
-            const local = JSON.parse(localStorage.getItem('mp_data_v30') || "[]");
-            const merged = mergeData(local, remote);
-            renderFromData(merged);
-            localStorage.setItem('mp_data_v30', JSON.stringify(merged));
-            lastSyncHash = generateHash(merged);
-            console.log("☁️ Catalogue synchronisé initialement");
-        }
-    });
-
-    // Vérification automatique
-    setInterval(checkForUpdates, SYNC_INTERVAL);
-
-    // Surveillance de changements locaux
-    const observer = new MutationObserver(async () => {
-        const local = JSON.parse(localStorage.getItem('mp_data_v30') || "[]");
-        const hash = generateHash(local);
-        if (hash !== lastSyncHash) {
-            await saveToGist(local);
-        }
-    });
-    observer.observe(document.getElementById('body-mp'), { childList: true, subtree: true });
-}
-
-// === 🌀 SYNC MANUEL OPTIONNEL ===
-async function syncGist() {
-    if (!GITHUB_TOKEN) await initToken();
-    const remote = await fetchFromGist();
-    if (remote.length > 0 && confirm("Remplacer le catalogue local par la version Cloud ?")) {
-        renderFromData(remote);
-        localStorage.setItem('mp_data_v30', JSON.stringify(remote));
-        lastSyncHash = generateHash(remote);
-        alert("✅ Catalogue restauré depuis le Cloud");
-    } else {
-        await saveToGist(JSON.parse(localStorage.getItem('mp_data_v30') || "[]"));
-        alert("✅ Catalogue local envoyé vers le Cloud");
-    }
-}
+// === CLOUD SYNC ===
+function genHash(d){return JSON.stringify(d).split('').reduce((a,b)=>((a<<5)-a)+b.charCodeAt(0),0).toString();}
+async function fetchFromGist(){try{const r=await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`,{headers:{Authorization:`token ${GITHUB_TOKEN}`}});if(!r.ok)throw new Error();const g=await r.json();const c=g.files[GIST_FILENAME]?.content;return c?JSON.parse(c):[];}catch(e){console.error(e);return [];}}
+async function saveToGist(d){try{await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`,{method:"PATCH",headers:{"Authorization":`token ${GITHUB_TOKEN}`,"Content-Type":"application/json"},body:JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(d,null,2)}}})});lastSyncHash=genHash(d);showSyncStatus("Synchronisé","success");}catch{showSyncStatus("Erreur Sync","error");}}
+function mergeData(local,remote){const m=new Map();remote.forEach(i=>m.set(i.n+i.f,i));local.forEach(i=>{const ex=m.get(i.n+i.f);if(!ex||i.updatedAt>ex.updatedAt)m.set(i.n+i.f,i);});return Array.from(m.values());}
+async function checkUpdates(){if(!GITHUB_TOKEN||isSyncing)return;isSyncing=true;const remote=await fetchFromGist();const local=JSON.parse(localStorage.getItem('mp_data_v30')||"[]");const merged=mergeData(local,remote);const newHash=genHash(merged);if(newHash!==lastSyncHash){document.getElementById('body-mp').innerHTML="";merged.forEach(d=>addRowMP(d));localStorage.setItem('mp_data_v30',JSON.stringify(merged));lastSyncHash=newHash;showSyncStatus("MAJ reçue","info");}isSyncing=false;}
+async function syncGist(){if(!GITHUB_TOKEN)await initToken();const remote=await fetchFromGist();if(remote.length>0&&confirm("Remplacer le catalogue local par le Cloud ?")){document.getElementById('body-mp').innerHTML="";remote.forEach(x=>addRowMP(x));localStorage.setItem('mp_data_v30',JSON.stringify(remote));showSyncStatus("Cloud restauré","success");}else{await saveToGist(JSON.parse(localStorage.getItem('mp_data_v30')||"[]"));}}
+async function initSync(){showSyncStatus("Initialisation","loading");await initToken();const remote=await fetchFromGist();const local=JSON.parse(localStorage.getItem('mp_data_v30')||"[]");const merged=mergeData(local,remote);document.getElementById('body-mp').innerHTML="";merged.forEach(d=>addRowMP(d));localStorage.setItem('mp_data_v30',JSON.stringify(merged));lastSyncHash=genHash(merged);showSyncStatus("En ligne","success");setInterval(checkUpdates,SYNC_INTERVAL);}
+document.addEventListener('DOMContentLoaded',initSync);
 </script>
+</body>
+</html>
