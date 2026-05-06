@@ -2,50 +2,34 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Boulangerie Pro V31 – Cloud Sync Recettes Auto</title>
+<title>Boulangerie Pro VFinal – Cloud Sync Recettes</title>
 <script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js)"></script>
 <style>
-:root {
-  --primary:#d35400; --secondary:#2c3e50; --success:#27ae60; --error:#c0392b;
-  --info:#2980b9; --bg:#f4f7f6;
-}
-/* -------------- Base -------------- */
+:root{--primary:#d35400;--secondary:#2c3e50;--success:#27ae60;--error:#c0392b;--info:#2980b9;--bg:#f4f7f6;}
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);margin:0;padding:20px;}
-.nav-tabs{display:flex;gap:5px;margin-bottom:20px;border-bottom:3px solid var(--secondary);flex-wrap:wrap;}
-.tab-btn{padding:12px 20px;border:none;cursor:pointer;color:white;border-radius:5px 5px 0 0;
-  background:#bdc3c7;font-weight:bold;}
+.nav-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:20px;border-bottom:3px solid var(--secondary);}
+.tab-btn{padding:12px 20px;border:none;cursor:pointer;color:white;border-radius:5px 5px 0 0;background:#bdc3c7;font-weight:bold;}
 .tab-btn.active{background:var(--primary);}
-.container{background:white;padding:25px;border-radius:5px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.1);max-width:1200px;margin:auto;}
+.container{background:white;padding:25px;border-radius:5px;max-width:1200px;margin:auto;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
-/* -------------- MP -------------- */
-.admin-bar{background:#34495e;color:white;padding:15px;border-radius:8px;margin-bottom:15px;
-  display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.admin-bar{background:#34495e;color:white;padding:15px;border-radius:8px;margin-bottom:15px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
 .admin-bar input[type=password]{width:70%;padding:6px;border:none;border-radius:4px;}
-.filters-bar{background:#eee;padding:6px 10px;border-radius:5px;margin-bottom:10px;
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+.filters-bar{background:#eee;padding:6px 10px;border-radius:5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
 .filters-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.filters-left label{display:flex;align-items:center;gap:4px;font-size:0.9em;background:white;
-  border:1px solid #ccc;border-radius:4px;padding:2px 6px;}
+.filters-left label{display:flex;align-items:center;gap:4px;font-size:0.9em;background:white;border:1px solid #ccc;border-radius:4px;padding:2px 6px;}
 .filters-left input[type=checkbox]{margin:0;}
 .m-wrap{display:flex;gap:4px;}
-.m-badge{padding:4px 7px;border:1px solid #ccc;border-radius:3px;cursor:pointer;font-size:0.75em;
-  background:#eee;font-weight:bold;color:#333;}
+.m-badge{padding:4px 7px;border:1px solid #ccc;border-radius:3px;cursor:pointer;font-size:0.75em;background:#eee;font-weight:bold;color:#333;}
 .m-badge.selected{background:var(--primary);color:white;border-color:var(--primary);}
 table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #eee;}
-.btn{padding:10px 16px;border:none;cursor:pointer;color:white;border-radius:4px;font-weight:bold;}
-/* -------------- Recettes / Métiers -------------- */
+.btn{padding:10px 14px;border:none;cursor:pointer;color:white;border-radius:4px;font-weight:bold;}
 .recette-grid{display:flex;flex-wrap:wrap;gap:15px;}
-.recette-card{width:280px;border:2px solid #ddd;border-radius:8px;padding:10px;
-  background:#fff;position:relative;box-shadow:0 2px 6px rgba(0,0,0,0.08);}
-.recette-card h4{margin:5px 0 10px 0;font-size:1.05em;}
-.recette-alert{position:absolute;top:8px;right:10px;width:10px;height:10px;
-  border-radius:50%;background:red;display:none;}
+.recette-card{width:280px;border:2px solid #ddd;border-radius:8px;padding:10px;background:#fff;position:relative;box-shadow:0 2px 6px rgba(0,0,0,0.08);}
+.recette-card h4{margin:5px 0 8px 0;font-size:1.05em;}
+.recette-alert{position:absolute;top:8px;right:10px;width:10px;height:10px;border-radius:50%;background:red;display:none;}
 .recette-alert.visible{display:inline-block;}
-/* -------------- Labo -------------- */
-.zone-title{background:#2c3e50;color:white;padding:8px 12px;border-radius:4px;margin:20px 0 8px 0;
-  font-size:0.9em;letter-spacing:1px;text-transform:uppercase;}
+.zone-title{background:#2c3e50;color:white;padding:8px 12px;border-radius:4px;margin:20px 0 8px 0;font-size:0.9em;text-transform:uppercase;letter-spacing:1px;}
 .box-reglage{border:1px solid #ddd;padding:15px;border-radius:8px;margin-bottom:15px;}
 .grid-pilotage{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
 .flex-sym{display:flex;gap:20px;}
@@ -53,10 +37,8 @@ table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #
 .bg-coef{background:#ebf5fb;border:2px solid #2980b9;}
 .bg-marge{background:#f5eef8;border:2px solid #8e44ad;}
 .valeur-main{font-size:1.5em;font-weight:bold;}
-.valeur-sub{font-size:1em;color:#555;}
-/* -------------- Indicateur sync -------------- */
-.sync-status{position:fixed;top:10px;right:10px;padding:8px 14px;border-radius:20px;background:#bbb;
-  color:white;z-index:999;font-size:13px;}
+.valeur-sub{font-size:0.95em;color:#555;}
+.sync-status{position:fixed;top:10px;right:10px;padding:8px 14px;border-radius:20px;background:#bbb;color:white;z-index:999;font-size:13px;}
 .sync-status.success{background:var(--success);}
 .sync-status.error{background:var(--error);}
 .sync-status.info{background:var(--info);}
@@ -65,26 +47,27 @@ table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #
 </head>
 <body>
 <div class="nav-tabs">
-  <button class="tab-btn active" onclick="showTab('mp')">Catalogue MP</button>
+  <button class="tab-btn active" onclick="showTab('mp')">Catalogue MP</button>
   <button class="tab-btn" onclick="showTab('B')">Boulangerie</button>
   <button class="tab-btn" onclick="showTab('P')">Pâtisserie</button>
   <button class="tab-btn" onclick="showTab('V')">Viennoiseries</button>
-  <button class="tab-btn" onclick="showTab('GV')">Gâteaux de Voyages</button>
-  <button class="tab-btn" onclick="showTab('hist');updateHistUI();">Historique Prix</button>
+  <button class="tab-btn" onclick="showTab('GV')">Gâteaux de Voyages</button>
+  <button class="tab-btn" onclick="showTab('hist');updateHistUI();">Historique</button>
 </div>
 
 <div class="container">
-<!-- === ONGLET MATIERES PREMIERES === -->
+
+<!-- ------------- Onglet MP ------------- -->
 <div id="tab-mp" class="tab-content active">
   <div class="admin-bar">
     <div>
-      🌐 <strong>Cloud Sync</strong><br>
+      🌐 <strong>Cloud Sync</strong><br>
       <input type="password" id="gh-token" placeholder="Token GitHub">
-      <button class="btn" style="background:var(--primary);" onclick="syncGist()">🔄 Sync</button>
+      <button class="btn" style="background:var(--primary);" onclick="syncGist()">🔄 Sync</button>
       <button class="btn" style="background:#555;" onclick="resetToken()">Reset Token</button>
     </div>
     <div>
-      💾 <strong>Fichier local</strong><br>
+      💾 <strong>Fichier Local</strong><br>
       <button class="btn" style="background:#7f8c8d;" onclick="exportLocal()">Exporter</button>
       <input type="file" id="import-local" onchange="importLocal()">
     </div>
@@ -98,7 +81,7 @@ table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #
       <label><input type="checkbox" class="f-check" value="V" checked onchange="filterMP()"> V</label>
       <label><input type="checkbox" class="f-check" value="GV" checked onchange="filterMP()"> GV</label>
     </div>
-    <button class="btn" style="background:var(--success);" onclick="addRowMP()">+ Ajouter MP</button>
+    <button class="btn" style="background:var(--success);" onclick="addRowMP()">+ Ajouter</button>
   </div>
 
   <table>
@@ -107,35 +90,13 @@ table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #
   </table>
 </div>
 
-<!-- === ONGLET B === -->
-<div id="tab-B" class="tab-content">
-  <h3>Boulangerie</h3>
-  <div id="recettes-B" class="recette-grid"></div>
-  <button class="btn" style="background:var(--success);" onclick="nouvelleRecette('B')">+ Nouvelle recette</button>
-</div>
+<!-- ------------- Onglets métiers ------------- -->
+<div id="tab-B"  class="tab-content"><h3>Boulangerie</h3><div id="recettes-B"  class="recette-grid"></div><button class="btn" style="background:var(--success);" onclick="nouvelleRecette('B')">+ Nouvelle recette</button></div>
+<div id="tab-P"  class="tab-content"><h3>Pâtisserie</h3><div id="recettes-P"  class="recette-grid"></div><button class="btn" style="background:var(--success);" onclick="nouvelleRecette('P')">+ Nouvelle recette</button></div>
+<div id="tab-V"  class="tab-content"><h3>Viennoiseries</h3><div id="recettes-V"  class="recette-grid"></div><button class="btn" style="background:var(--success);" onclick="nouvelleRecette('V')">+ Nouvelle recette</button></div>
+<div id="tab-GV" class="tab-content"><h3>Gâteaux de Voyages</h3><div id="recettes-GV" class="recette-grid"></div><button class="btn" style="background:var(--success);" onclick="nouvelleRecette('GV')">+ Nouvelle recette</button></div>
 
-<!-- === ONGLET P === -->
-<div id="tab-P" class="tab-content">
-  <h3>Pâtisserie</h3>
-  <div id="recettes-P" class="recette-grid"></div>
-  <button class="btn" style="background:var(--success);" onclick="nouvelleRecette('P')">+ Nouvelle recette</button>
-</div>
-
-<!-- === ONGLET V === -->
-<div id="tab-V" class="tab-content">
-  <h3>Viennoiseries</h3>
-  <div id="recettes-V" class="recette-grid"></div>
-  <button class="btn" style="background:var(--success);" onclick="nouvelleRecette('V')">+ Nouvelle recette</button>
-</div>
-
-<!-- === ONGLET GV === -->
-<div id="tab-GV" class="tab-content">
-  <h3>Gâteaux de Voyages</h3>
-  <div id="recettes-GV" class="recette-grid"></div>
-  <button class="btn" style="background:var(--success);" onclick="nouvelleRecette('GV')">+ Nouvelle recette</button>
-</div>
-
-<!-- === ONGLET LABO (affichage des fiches) === -->
+<!-- ------------- Labo fiche ------------- -->
 <div id="tab-labo" class="tab-content">
   <div id="capture-zone">
     <div class="zone-title">Recette</div>
@@ -148,11 +109,11 @@ table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #
       <button class="btn" style="background:var(--success);" onclick="addRowLabo()">+ Ingrédient</button>
     </div>
 
-    <div class="zone-title">Pilotage financier</div>
+    <div class="zone-title">Pilotage financier</div>
     <div class="grid-pilotage">
       <div class="box-reglage">
-        <label>Poids pièce crue (g)</label><input id="poids-crue" type="number" oninput="calculerLabo()">
-        <label>Poids pièce cuite (g)</label><input id="poids-cuit" type="number" oninput="calculerLabo()">
+        <label>Poids crue (g)</label><input id="poids-crue" type="number" oninput="calculerLabo()">
+        <label>Poids cuite (g)</label><input id="poids-cuit" type="number" oninput="calculerLabo()">
       </div>
       <div class="box-reglage">
         <label>Coefficient</label><input id="coef-val" type="number" value="3.5" step="0.1" oninput="calculerLabo()">
@@ -165,14 +126,8 @@ table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #
 
     <div class="zone-title">Résultats</div>
     <div class="flex-sym">
-      <div class="sym-box bg-coef"><strong>Coef</strong>
-        <div id="brut-c-ttc" class="valeur-main">0.00 € TTC</div>
-        <div id="brut-c-ht" class="valeur-sub">0.00 € HT</div>
-      </div>
-      <div class="sym-box bg-marge"><strong>Marge</strong>
-        <div id="brut-m-ttc" class="valeur-main">0.00 € TTC</div>
-        <div id="brut-m-ht" class="valeur-sub">0.00 € HT</div>
-      </div>
+      <div class="sym-box bg-coef"><strong>Coef</strong><div id="brut-c-ttc" class="valeur-main">0.00 € TTC</div><div id="brut-c-ht" class="valeur-sub">0.00 € HT</div></div>
+      <div class="sym-box bg-marge"><strong>Marge</strong><div id="brut-m-ttc" class="valeur-main">0.00 € TTC</div><div id="brut-m-ht" class="valeur-sub">0.00 € HT</div></div>
     </div>
 
     <div class="zone-title">Emballage</div>
@@ -198,140 +153,114 @@ table{width:100%;border-collapse:collapse;}th,td{padding:10px;border:1px solid #
   <button class="btn" style="background:#e67e22;width:100%;margin-top:20px;font-size:1.1em;" onclick="exportJPG()">💾 Sauvegarde JPEG</button>
 </div>
 
-<!-- === ONGLET HISTORIQUE === -->
+<!-- Historique -->
 <div id="tab-hist" class="tab-content">
   <h3>Historique des variations</h3>
   <div id="hist-list" class="box-reglage"></div>
   <button class="btn" style="background:red;" onclick="clearHist()">Vider l'historique</button>
 </div>
 
-</div> <!-- /.container -->
+</div>
 <div id="sync-status" class="sync-status loading">Initialisation...</div>
 <script>
-// ===== CONFIGURATION GIST =====
-const GIST_ID="99caadd65ae7d235bb34c56975410acd";
-const GIST_FILENAME="ingredients_boulangerie.json";
-const SYNC_INTERVAL=5000;
-let GITHUB_TOKEN=null,isSyncing=false,lastSyncHash=null;
+/* ------------------------------------------------------------
+   CONFIGURATION GIST + GLOBAL
+------------------------------------------------------------ */
+const GIST_ID = "99caadd65ae7d235bb34c56975410acd";
+const GIST_FILENAME = "ingredients_boulangerie.json";
+const GIST_RECETTES_FILENAME = "recettes_boulangerie.json";
+const SYNC_INTERVAL = 60000; // 1 minute
 
-// Données locales
-let priceHistory=JSON.parse(localStorage.getItem('price_hist_v30')||"[]");
-let recettes=JSON.parse(localStorage.getItem('recettes_data_v30')||"{}");
+let GITHUB_TOKEN = null, isSyncing = false, lastSyncHash = null, lastSyncHashRecettes = null;
+let priceHistory = JSON.parse(localStorage.getItem('price_hist_v30') || "[]");
+let recettes = JSON.parse(localStorage.getItem('recettes_data_v30') || "{}");
 
-// ---------- NAVIGATION ----------
-function showTab(id){
+/* ------------------------------------------------------------
+   UTILITAIRES
+------------------------------------------------------------ */
+function showTab(id){ 
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  const el=document.getElementById('tab-'+id);
-  if(el) el.classList.add('active');
-  if(event) event.currentTarget.classList.add('active');
+  document.getElementById('tab-'+id)?.classList.add('active');
+  event?.currentTarget?.classList.add('active');
 }
+function showSyncStatus(msg,cls){const e=document.getElementById('sync-status'); e.textContent=msg; e.className="sync-status "+cls;}
+function genHash(d){return JSON.stringify(d).split('').reduce((a,b)=>((a<<5)-a)+b.charCodeAt(0),0).toString();}
+function calcPrixVenteTTC(f){const coef=3.5,tva=1.1;return ((parseFloat(f.prixTotalHT||0)*coef)*tva).toFixed(2);}
 
-// ---------- SYNC STATUS ----------
-function showSyncStatus(msg,cls){
-  const e=document.getElementById('sync-status');
-  e.textContent=msg; e.className="sync-status "+cls;
-}
-
-// ---------- TOKEN ----------
+/* ------------------------------------------------------------
+   TOKEN GITHUB
+------------------------------------------------------------ */
 async function initToken(){
   GITHUB_TOKEN=localStorage.getItem('gh_token');
   if(GITHUB_TOKEN){document.getElementById('gh-token').value=GITHUB_TOKEN;return;}
-  const input=prompt("Entrez votre token GitHub (une seule fois, stocké localement) :");
-  if(input){
-    GITHUB_TOKEN=input.trim();
-    localStorage.setItem('gh_token',GITHUB_TOKEN);
-    document.getElementById('gh-token').value=GITHUB_TOKEN;
-  }
+  const t=prompt("Entrez votre token GitHub personnel :");
+  if(t){GITHUB_TOKEN=t.trim();localStorage.setItem('gh_token',GITHUB_TOKEN);document.getElementById('gh-token').value=t;}
 }
 function resetToken(){localStorage.removeItem('gh_token');alert("Token réinitialisé. Rechargez la page.");}
 
-// ---------- MATIERES PREMIERES ----------
-function addRowMP(data={}){
-  const m=data.m||[];
-  const tr=document.getElementById('body-mp').insertRow();
-  tr.innerHTML=`
-  <td><div class="m-wrap">
-    <span class="m-badge ${m.includes('B')?'selected':''}" onclick="toggleBadge(this)">B</span>
-    <span class="m-badge ${m.includes('P')?'selected':''}" onclick="toggleBadge(this)">P</span>
-    <span class="m-badge ${m.includes('V')?'selected':''}" onclick="toggleBadge(this)">V</span>
-    <span class="m-badge ${m.includes('GV')?'selected':''}" onclick="toggleBadge(this)">GV</span></div></td>
-  <td><input class="f" value="${data.f||''}" oninput="saveMPToLocal()"></td>
-  <td><input class="n" value="${data.n||''}" oninput="saveMPToLocal()"></td>
-  <td><input class="p" type="number" value="${data.px||''}" oninput="saveMPToLocal()"></td>
-  <td><button class="btn" style="background:red;" onclick="this.closest('tr').remove();saveMPToLocal()">X</button></td>`;
-}
+/* ------------------------------------------------------------
+   MATIERES PREMIERES
+------------------------------------------------------------ */
+function addRowMP(d={}){const m=d.m||[];const tr=document.getElementById('body-mp').insertRow();
+tr.innerHTML=`<td><div class="m-wrap">
+<span class="m-badge ${m.includes('B')?'selected':''}" onclick="toggleBadge(this)">B</span>
+<span class="m-badge ${m.includes('P')?'selected':''}" onclick="toggleBadge(this)">P</span>
+<span class="m-badge ${m.includes('V')?'selected':''}" onclick="toggleBadge(this)">V</span>
+<span class="m-badge ${m.includes('GV')?'selected':''}" onclick="toggleBadge(this)">GV</span></div></td>
+<td><input class="f" value="${d.f||''}" oninput="saveMPToLocal()"></td>
+<td><input class="n" value="${d.n||''}" oninput="saveMPToLocal()"></td>
+<td><input class="p" type="number" value="${d.px||''}" oninput="saveMPToLocal()"></td>
+<td><button class="btn" style="background:red;" onclick="this.closest('tr').remove();saveMPToLocal()">X</button></td>`;}
 function toggleBadge(e){e.classList.toggle('selected');saveMPToLocal();}
-function filterMP(){
-  const c=Array.from(document.querySelectorAll('.f-check:checked')).map(x=>x.value);
-  document.querySelectorAll('#body-mp tr').forEach(tr=>{
-    const m=Array.from(tr.querySelectorAll('.m-badge.selected')).map(b=>b.innerText);
-    tr.style.display=c.some(v=>m.includes(v))?'':'none';
-  });
-}
+function filterMP(){const c=Array.from(document.querySelectorAll('.f-check:checked')).map(x=>x.value);
+document.querySelectorAll('#body-mp tr').forEach(tr=>{const m=Array.from(tr.querySelectorAll('.m-badge.selected')).map(b=>b.innerText);
+tr.style.display=c.some(v=>m.includes(v))?'':'none';});}
 function saveMPToLocal(){
   const data=Array.from(document.querySelectorAll('#body-mp tr')).map(tr=>({
     m:Array.from(tr.querySelectorAll('.m-badge.selected')).map(b=>b.innerText),
-    f:tr.querySelector('.f').value,
-    n:tr.querySelector('.n').value,
-    px:tr.querySelector('.p').value,
+    f:tr.querySelector('.f').value,n:tr.querySelector('.n').value,px:tr.querySelector('.p').value,
     updatedAt:new Date().toISOString()
   }));
   localStorage.setItem('mp_data_v30',JSON.stringify(data));
   majAutomatiqueRecettes();
 }
-function exportLocal(){
-  const d=localStorage.getItem('mp_data_v30');
-  const blob=new Blob([d],{type:"application/json"});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download="catalogue.json";a.click();
-}
-function importLocal(){
-  const f=document.getElementById('import-local').files[0];
-  const r=new FileReader();
-  r.onload=e=>{
-    const d=JSON.parse(e.target.result);
-    document.getElementById('body-mp').innerHTML=""; d.forEach(addRowMP);
-    saveMPToLocal();
-  };
-  r.readAsText(f);
-}
 
-// ---------- GESTION FICHES RECETTES ----------
-function actualiserToutesRecettes(){
-  ["B","P","V","GV"].forEach(m=>afficherRecettes(m));
-}
+/* ------------------------------------------------------------
+   RECETTES — création / affichage par métier
+------------------------------------------------------------ */
 function nouvelleRecette(metier){
   const nom=prompt("Nom de la nouvelle recette "+metier+" ?");
-  if(!nom) return;
+  if(!nom)return;
   const id=Date.now().toString();
   const fiche={id,nom,metier,ingredients:[],prixTotalHT:0,updatedAt:new Date().toISOString()};
-  if(!recettes[metier]) recettes[metier]=[];
+  if(!recettes[metier])recettes[metier]=[];
   recettes[metier].push(fiche);
   localStorage.setItem('recettes_data_v30',JSON.stringify(recettes));
   afficherRecettes(metier);
 }
 function afficherRecettes(metier){
-  const cont=document.getElementById('recettes-'+metier); if(!cont) return;
-  cont.innerHTML="";
+  const div=document.getElementById('recettes-'+metier); if(!div)return;
+  div.innerHTML="";
   (recettes[metier]||[]).forEach(f=>{
     const card=document.createElement('div');
     card.className="recette-card";
-    card.innerHTML=`<div class="recette-alert" id="alert-${f.id}"></div>
+    card.innerHTML=`<div id="alert-${f.id}" class="recette-alert"></div>
       <h4>${f.nom}</h4>
-      <small>Coût MP : ${f.prixTotalHT||0} € HT</small><br>
-      <button class="btn" style="background:var(--primary);width:100%;" 
-        onclick="ouvrirRecette('${metier}','${f.id}')">Ouvrir</button>`;
-    cont.appendChild(card);
+      <small>Coût : ${f.prixTotalHT||0} € HT ‣ PV : ${calcPrixVenteTTC(f)} € TTC</small><br>
+      <button class="btn" style="background:var(--primary);width:100%;" onclick="ouvrirRecette('${metier}','${f.id}')">Ouvrir</button>`;
+    div.appendChild(card);
   });
 }
+function actualiserToutesRecettes(){["B","P","V","GV"].forEach(m=>afficherRecettes(m));}
 
-// ---------- OUVERTURE / Labo ----------
+/* ------------------------------------------------------------
+   LABO / OUVERTURE RECETTE
+------------------------------------------------------------ */
 function addRowLabo(){
   const tr=document.getElementById('body-labo').insertRow();
   tr.innerHTML=`<td><select onchange="updateLabo(this)">
-      <option>ALL</option><option>B</option><option>P</option><option>V</option><option>GV</option>
-    </select></td>
+      <option>ALL</option><option>B</option><option>P</option><option>V</option><option>GV</option></select></td>
     <td><select class="l-sel" onchange="calculerLabo()"></select></td>
     <td><input class="l-qte" type="number" value="0" oninput="calculerLabo()"></td>
     <td class="l-res">0.00 €</td>
@@ -339,52 +268,47 @@ function addRowLabo(){
   updateLabo(tr.cells[0].firstChild);
 }
 function updateLabo(sel){
-  const f=sel.value;
-  const opt=sel.closest('tr').querySelector('.l-sel');
+  const f=sel.value,opt=sel.closest('tr').querySelector('.l-sel');
   let s='<option value="0">--Choisir--</option>';
   document.querySelectorAll('#body-mp tr').forEach(tr=>{
     const mts=Array.from(tr.querySelectorAll('.m-badge.selected')).map(b=>b.innerText);
     if(f=="ALL"||mts.includes(f))
       s+=`<option value="${tr.querySelector('.p').value}">${tr.querySelector('.n').value}</option>`;
-  });
-  opt.innerHTML=s;
+  }); opt.innerHTML=s;
 }
 function ouvrirRecette(metier,id){
-  const f=(recettes[metier]||[]).find(x=>x.id===id);
-  if(!f) return;
+  const f=(recettes[metier]||[]).find(x=>x.id===id); if(!f)return;
   showTab('labo');
   document.getElementById('nom-produit').value=f.nom;
   document.getElementById('body-labo').innerHTML="";
   f.ingredients.forEach(i=>{
     addRowLabo();
-    const last=document.querySelector('#body-labo tr:last-child');
-    last.querySelector('.l-qte').value=i.qte;
-    last.querySelector('.l-sel').innerHTML=`<option value="${i.prix}">${i.nom}</option>`;
-  });
-  calculerLabo();
+    const tr=document.querySelector('#body-labo tr:last-child');
+    tr.querySelector('.l-qte').value=i.qte;
+    tr.querySelector('.l-sel').innerHTML=`<option value="${i.prix}">${i.nom}</option>`;
+  }); calculerLabo();
 }
 
-// ---------- CALCUL ----------
+/* ------------------------------------------------------------
+   CALCUL ET SAUVEGARDE DE RECETTE
+------------------------------------------------------------ */
 function calculerLabo(){
   let tot=0,poids=0;
   document.querySelectorAll('#body-labo tr').forEach(tr=>{
     const p=parseFloat(tr.querySelector('.l-sel').value)||0;
     const q=parseFloat(tr.querySelector('.l-qte').value)||0;
-    const res=(q/1000)*p;
-    tr.querySelector('.l-res').textContent=res.toFixed(2)+" €";
+    const res=(q/1000)*p; tr.querySelector('.l-res').textContent=res.toFixed(2)+" €";
     tot+=res; poids+=q;
   });
-  const pCrue=parseFloat(document.getElementById('poids-crue').value)||0,
-        coef=parseFloat(document.getElementById('coef-val').value)||1,
-        marge=parseFloat(document.getElementById('marge-val').value)||0,
-        tva=1+(parseFloat(document.getElementById('tva-val').value)/100);
+  const pCrue=parseFloat(document.getElementById('poids-crue').value)||0,coef=parseFloat(document.getElementById('coef-val').value)||1,
+        marge=parseFloat(document.getElementById('marge-val').value)||0,tva=1+(parseFloat(document.getElementById('tva-val').value)/100);
   if(pCrue>0&&poids>0){
     const prHT=(tot/poids)*pCrue,bHT_C=prHT*coef,bHT_M=prHT/(1-(marge/100));
+    const emb=document.getElementById('check-emb').checked?(parseFloat(document.getElementById('prix-emb-ht').value)||0):0;
     document.getElementById('brut-c-ht').textContent=bHT_C.toFixed(2)+" € HT";
     document.getElementById('brut-c-ttc').textContent=(bHT_C*tva).toFixed(2)+" € TTC";
     document.getElementById('brut-m-ht').textContent=bHT_M.toFixed(2)+" € HT";
     document.getElementById('brut-m-ttc').textContent=(bHT_M*tva).toFixed(2)+" € TTC";
-    const emb=document.getElementById('check-emb').checked?(parseFloat(document.getElementById('prix-emb-ht').value)||0):0;
     document.getElementById('mag-c-ht').textContent="HT : "+(bHT_C+emb).toFixed(2)+" €";
     document.getElementById('mag-c-ttc').textContent=((bHT_C+emb)*tva).toFixed(2)+" € TTC";
     document.getElementById('mag-m-ht').textContent="HT : "+(bHT_M+emb).toFixed(2)+" €";
@@ -393,137 +317,137 @@ function calculerLabo(){
   saveRecetteCourante();
 }
 function saveRecetteCourante(){
-  const nom=document.getElementById('nom-produit').value;
-  if(!nom) return;
-  const fic=Object.values(recettes).flat().find(f=>f.nom===nom);
-  if(!fic) return;
-  fic.ingredients=Array.from(document.querySelectorAll('#body-labo tr')).map(tr=>({
+  const nom=document.getElementById('nom-produit').value; if(!nom)return;
+  const f=Object.values(recettes).flat().find(x=>x.nom===nom); if(!f)return;
+  f.ingredients=Array.from(document.querySelectorAll('#body-labo tr')).map(tr=>({
     nom:tr.querySelector('.l-sel').options[tr.querySelector('.l-sel').selectedIndex].text,
     qte:parseFloat(tr.querySelector('.l-qte').value)||0,
     prix:parseFloat(tr.querySelector('.l-sel').value)||0
   }));
-  fic.updatedAt=new Date().toISOString();
-  let t=0; fic.ingredients.forEach(i=>{t+=(i.qte/1000)*i.prix;});
-  fic.prixTotalHT=t.toFixed(2);
+  let tot=0;f.ingredients.forEach(i=>{tot+=(i.qte/1000)*i.prix;});f.prixTotalHT=tot.toFixed(2);
+  f.updatedAt=new Date().toISOString();
   localStorage.setItem('recettes_data_v30',JSON.stringify(recettes));
 }
 
-// ---------- AUTO UPDATE RECETTES lors des variations MP ----------
+/* ------------------------------------------------------------
+   MAJ AUTOMATIQUE RECETTES
+------------------------------------------------------------ */
 function majAutomatiqueRecettes(){
   const mp=JSON.parse(localStorage.getItem('mp_data_v30')||"[]");
   let maj=0;
-  Object.entries(recettes).forEach(([metier,liste])=>{
+  Object.entries(recettes).forEach(([m,liste])=>{
     liste.forEach(f=>{
-      let t=0,changed=false;
+      let t=0,chg=false;
       f.ingredients.forEach(i=>{
         const ref=mp.find(x=>x.n===i.nom);
-        if(ref){
-          const newp=parseFloat(ref.px)||0;
-          if(i.prix!==newp){changed=true;i.prix=newp;}
+        if(ref){const newp=parseFloat(ref.px)||0;
+          if(i.prix!==newp){chg=true;i.prix=newp;}
           t+=(i.qte/1000)*newp;
         }
       });
-      if(changed){
-        f.prixTotalHT=t.toFixed(2); maj++;
+      if(chg){f.prixTotalHT=t.toFixed(2);f.updatedAt=new Date().toISOString();maj++;
         const a=document.getElementById('alert-'+f.id);
-        if(a){a.classList.add('visible');setTimeout(()=>a.classList.remove('visible'),8000);}
+        if(a){a.classList.add('visible');setTimeout(()=>a.classList.remove('visible'),10000);}
       }
     });
   });
-  if(maj>0){
-    localStorage.setItem('recettes_data_v30',JSON.stringify(recettes));
-    showSyncStatus(`${maj} fiches mises à jour`, 'info');
-    actualiserToutesRecettes();
-  }
+  if(maj>0){localStorage.setItem('recettes_data_v30',JSON.stringify(recettes));actualiserToutesRecettes();showSyncStatus(`${maj} recettes maj`,`info`);}
 }
 
-// ---------- HISTORIQUE ----------
+/* ------------------------------------------------------------
+   HISTORIQUE / EXPORT JPEG
+------------------------------------------------------------ */
 function clearHist(){priceHistory=[];localStorage.removeItem('price_hist_v30');document.getElementById('hist-list').innerHTML="";}
-function updateHistUI(){document.getElementById('hist-list').innerHTML=priceHistory.map(h=>`
-  <div>${h.date} | ${h.item} : ${h.old}€ → ${h.new}€</div>`).join('');}
+function updateHistUI(){document.getElementById('hist-list').innerHTML=priceHistory.map(h=>`<div>${h.date} | ${h.item} : ${h.old}€ → ${h.new}€</div>`).join('');}
+function exportJPG(){html2canvas(document.querySelector("#capture-zone"),{scale:2}).then(c=>{const a=document.createElement('a');
+a.download=(document.getElementById('nom-produit').value||'fiche')+'.jpg';a.href=c.toDataURL("image/jpeg",0.9);a.click();});}
 
-// ---------- EXPORT JPEG ----------
-function exportJPG(){
-  html2canvas(document.querySelector("#capture-zone"),{scale:2}).then(canvas=>{
-    const a=document.createElement('a');
-    a.download=(document.getElementById('nom-produit').value||'fiche')+'.jpg';
-    a.href=canvas.toDataURL("image/jpeg",0.9); a.click();
-  });
-}
-
-// ---------- CLOUD / SYNC ----------
-function genHash(d){return JSON.stringify(d).split('').reduce((a,b)=>((a<<5)-a)+b.charCodeAt(0),0).toString();}
-async function fetchFromGist(){
+/* ------------------------------------------------------------
+   CLOUD : MP + RECETTES
+------------------------------------------------------------ */
+async function fetchFromGist(filename){
   try{
     const r=await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`,{headers:{Authorization:`token ${GITHUB_TOKEN}`}});
-    if(!r.ok)throw new Error("Erreur fetch");
-    const g=await r.json();const c=g.files[GIST_FILENAME]?.content;
-    return c?JSON.parse(c):[];
-  }catch(e){console.error(e);return [];}
+    if(!r.ok)throw new Error();const g=await r.json();const c=g.files[filename]?.content;
+    return c?JSON.parse(c):(filename===GIST_FILENAME?[]:{});}
+  catch(e){console.error(e);return (filename===GIST_FILENAME?[]:{});}
 }
-async function saveToGist(d){
+async function saveToGistAll(){
   try{
+    const mp=localStorage.getItem('mp_data_v30')||"[]";
+    const rec=localStorage.getItem('recettes_data_v30')||"{}";
     await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`,{
       method:"PATCH",
       headers:{"Authorization":`token ${GITHUB_TOKEN}`,"Content-Type":"application/json"},
-      body:JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(d,null,2)}}})
+      body:JSON.stringify({files:{
+        [GIST_FILENAME]:{content:mp},
+        [GIST_RECETTES_FILENAME]:{content:rec}
+      }})
     });
-    lastSyncHash=genHash(d);
-    showSyncStatus("Synchronisé","success");
-  }catch{showSyncStatus("Erreur sync","error");}
+    showSyncStatus("Sync MP + Recettes","success");
+  }catch(e){showSyncStatus("Erreur sync","error");}
 }
-function mergeData(l,r){
-  const m=new Map();
-  r.forEach(i=>m.set(i.n+i.f,i));
-  l.forEach(i=>{const e=m.get(i.n+i.f);if(!e||i.updatedAt>e.updatedAt)m.set(i.n+i.f,i);});
-  return Array.from(m.values());
+function mergeData(l,r){const m=new Map();r.forEach(i=>m.set(i.n+i.f,i));
+l.forEach(i=>{const e=m.get(i.n+i.f);if(!e||i.updatedAt>e.updatedAt)m.set(i.n+i.f,i);});
+return Array.from(m.values());}
+function mergeRecettes(local,remote){
+  const merged={};
+  ["B","P","V","GV"].forEach(m=>{
+    const loc=local[m]||[],rem=remote[m]||[],map=new Map();
+    [...rem,...loc].forEach(f=>{const e=map.get(f.id);if(!e||f.updatedAt>e.updatedAt)map.set(f.id,f);});
+    merged[m]=Array.from(map.values());
+  });
+  return merged;
 }
 async function checkUpdates(){
-  if(!GITHUB_TOKEN||isSyncing)return;
-  isSyncing=true;
-  const remote=await fetchFromGist();
-  const local=JSON.parse(localStorage.getItem('mp_data_v30')||"[]");
-  const merged=mergeData(local,remote);
-  const h=genHash(merged);
+  if(!GITHUB_TOKEN||isSyncing)return;isSyncing=true;
+  const remoteMP=await fetchFromGist(GIST_FILENAME);
+  const localMP=JSON.parse(localStorage.getItem('mp_data_v30')||"[]");
+  const mergedMP=mergeData(localMP,remoteMP);
+  const h=genHash(mergedMP);
   if(h!==lastSyncHash){
     document.getElementById('body-mp').innerHTML="";
-    merged.forEach(addRowMP);
-    localStorage.setItem('mp_data_v30',JSON.stringify(merged));
-    lastSyncHash=h;
-    showSyncStatus("MAJ Cloud","info");
+    mergedMP.forEach(addRowMP);
+    localStorage.setItem('mp_data_v30',JSON.stringify(mergedMP));
+    lastSyncHash=h;showSyncStatus("MAJ MP","info");
     majAutomatiqueRecettes();
+  }
+  const remoteRec=await fetchFromGist(GIST_RECETTES_FILENAME);
+  const mergedR=mergeRecettes(recettes,remoteRec);
+  const hR=genHash(mergedR);
+  if(hR!==lastSyncHashRecettes){
+    recettes=mergedR;localStorage.setItem('recettes_data_v30',JSON.stringify(mergedR));
+    actualiserToutesRecettes();lastSyncHashRecettes=hR;showSyncStatus("MAJ Recettes","info");
   }
   isSyncing=false;
 }
 async function syncGist(){
   if(!GITHUB_TOKEN)await initToken();
-  const remote=await fetchFromGist();
-  if(remote.length>0&&confirm("Remplacer le catalogue local par le Cloud ?")){
-    document.getElementById('body-mp').innerHTML="";
-    remote.forEach(addRowMP);
-    localStorage.setItem('mp_data_v30',JSON.stringify(remote));
-    showSyncStatus("Cloud restauré","success");
-    majAutomatiqueRecettes();
-  }else{
-    await saveToGist(JSON.parse(localStorage.getItem('mp_data_v30')||"[]"));
-  }
+  await saveToGistAll();
 }
 async function initSync(){
   showSyncStatus("Connexion","loading");
   await initToken();
-  const remote=await fetchFromGist();
-  const local=JSON.parse(localStorage.getItem('mp_data_v30')||"[]");
-  const merged=mergeData(local,remote);
+  const remoteMP=await fetchFromGist(GIST_FILENAME);
+  const remoteR=await fetchFromGist(GIST_RECETTES_FILENAME);
+  const localMP=JSON.parse(localStorage.getItem('mp_data_v30')||"[]");
+  const localR=JSON.parse(localStorage.getItem('recettes_data_v30')||"{}");
+  const mergedMP=mergeData(localMP,remoteMP);
+  const mergedR=mergeRecettes(localR,remoteR);
   document.getElementById('body-mp').innerHTML="";
-  merged.forEach(addRowMP);
-  localStorage.setItem('mp_data_v30',JSON.stringify(merged));
-  lastSyncHash=genHash(merged);
-  showSyncStatus("En ligne","success");
+  mergedMP.forEach(addRowMP);
+  localStorage.setItem('mp_data_v30',JSON.stringify(mergedMP));
+  recettes=mergedR;
+  localStorage.setItem('recettes_data_v30',JSON.stringify(mergedR));
+  lastSyncHash=genHash(mergedMP);
+  lastSyncHashRecettes=genHash(mergedR);
   actualiserToutesRecettes();
   majAutomatiqueRecettes();
+  showSyncStatus("En ligne","success");
   setInterval(checkUpdates,SYNC_INTERVAL);
 }
 document.addEventListener('DOMContentLoaded',initSync);
 </script>
+
 </body>
 </html>
