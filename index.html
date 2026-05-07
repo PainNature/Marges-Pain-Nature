@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Boulangerie Pro Synchronisé V Final</title>
-<script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js)"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
 :root {
@@ -179,18 +179,14 @@ background:#bbb;color:white;z-index:999;font-size:13px;}
       <div class="box-reglage">
         <label>Poids cru (g)</label>
         <input id="poids-crue" type="number" step="0.1" oninput="calculerLabo()">
-
         <label>Poids cuit (g)</label>
         <input id="poids-cuit" type="number" step="0.1" oninput="calculerLabo()">
       </div>
-
       <div class="box-reglage">
         <label>Coefficient</label>
         <input id="coef-val" type="number" value="3.5" step="0.1" oninput="calculerLabo()">
-
         <label>Marge (%)</label>
         <input id="marge-val" type="number" value="70" step="0.1" oninput="calculerLabo()">
-
         <label>TVA</label>
         <select id="tva-val" onchange="calculerLabo()">
           <option value="5.5">5.5 %</option>
@@ -274,7 +270,6 @@ let recettes = JSON.parse(localStorage.getItem("recettes_data_v31") || "{}");
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-
   const el = document.getElementById("tab-" + id);
   if (el) el.classList.add("active");
   if (btn) btn.classList.add("active");
@@ -298,14 +293,11 @@ function normaliserRecettes() {
 
 async function initToken() {
   GITHUB_TOKEN = localStorage.getItem("gh_token");
-
   if (GITHUB_TOKEN) {
     document.getElementById("gh-token").value = GITHUB_TOKEN;
     return;
   }
-
   const t = prompt("Veuillez saisir votre token GitHub personnel :");
-
   if (t) {
     GITHUB_TOKEN = t.trim();
     localStorage.setItem("gh_token", GITHUB_TOKEN);
@@ -341,11 +333,9 @@ function setMPTable(data) {
 function addRowMP(d = {}) {
   const m = d.m || [];
   const tr = document.getElementById("body-mp").insertRow();
-
   tr.dataset.id = d.id || crypto.randomUUID();
   tr.dataset.updatedAt = d.updatedAt || new Date().toISOString();
   tr.dataset.oldPrice = d.px || "";
-
   tr.innerHTML = `
     <td>
       <div class="m-wrap">
@@ -363,13 +353,7 @@ function addRowMP(d = {}) {
 }
 
 function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, s => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  }[s]));
+  return String(value).replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[s]));
 }
 
 function markMPUpdated(input) {
@@ -384,7 +368,6 @@ function toggleBadge(e) {
 
 function filterMP() {
   const checked = Array.from(document.querySelectorAll(".f-check:checked")).map(x => x.value);
-
   document.querySelectorAll("#body-mp tr").forEach(tr => {
     const metiers = Array.from(tr.querySelectorAll(".m-badge.selected")).map(b => b.innerText.trim());
     tr.style.display = checked.some(v => metiers.includes(v)) ? "" : "none";
@@ -396,23 +379,17 @@ function handlePriceChange(input) {
   const oldPrice = parseFloat(tr.dataset.oldPrice || 0);
   const newPrice = parseFloat(input.value || 0);
   const item = tr.querySelector(".n").value.trim();
-
   tr.dataset.updatedAt = new Date().toISOString();
-
   if (item && oldPrice !== newPrice) {
     priceHistory.push({
       id: crypto.randomUUID(),
       date: new Date().toLocaleString("fr-FR"),
       iso: new Date().toISOString(),
-      item,
-      old: oldPrice,
-      new: newPrice
+      item, old: oldPrice, new: newPrice
     });
-
     tr.dataset.oldPrice = input.value;
     localStorage.setItem("price_hist_v31", JSON.stringify(priceHistory));
   }
-
   saveMPToLocal(true);
 }
 
@@ -420,14 +397,10 @@ function saveMPToLocal(sync = false) {
   const data = getMPDataFromTable();
   localStorage.setItem("mp_data_v31", JSON.stringify(data));
   majAutomatiqueRecettes();
-
-  if (sync) {
-    debounceSaveAll();
-  }
+  if (sync) debounceSaveAll();
 }
 
 let saveTimer = null;
-
 function debounceSaveAll() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => saveAll(), 800);
@@ -436,34 +409,14 @@ function debounceSaveAll() {
 function nouvelleRecette(m) {
   const nom = prompt("Nom de la nouvelle recette " + m + " :");
   if (!nom) return;
-
   const id = crypto.randomUUID();
-
   const fiche = {
-    id,
-    nom,
-    metier: m,
-    ingredients: [],
-    prixTotalHT: 0,
-    param: {
-      coef: 3.5,
-      marge: 70,
-      tva: 10,
-      embActif: false,
-      embPrix: 0,
-      perte: 0,
-      poidsCru: 0,
-      poidsCuit: 0
-    },
-    prixFinalTTC: 0,
-    autoUpdate: false,
-    hasUpdate: false,
-    updatedAt: new Date().toISOString()
+    id, nom, metier: m, ingredients: [], prixTotalHT: 0,
+    param: { coef: 3.5, marge: 70, tva: 10, embActif: false, embPrix: 0, perte: 0, poidsCru: 0, poidsCuit: 0 },
+    prixFinalTTC: 0, autoUpdate: false, hasUpdate: false, updatedAt: new Date().toISOString()
   };
-
   recettes[m] = recettes[m] || [];
   recettes[m].push(fiche);
-
   persistRecettes();
   afficherRecettes(m);
   saveAll();
@@ -472,14 +425,11 @@ function nouvelleRecette(m) {
 function afficherRecettes(m) {
   const div = document.getElementById("recettes-" + m);
   if (!div) return;
-
   div.innerHTML = "";
-
   (recettes[m] || []).forEach(f => {
     const alert = f.hasUpdate ? "visible" : "";
     const card = document.createElement("div");
     card.className = "recette-card";
-
     card.innerHTML = `
       <div class="recette-alert ${alert}" id="alert-${f.id}"></div>
       <h4>${escapeHTML(f.nom)}</h4>
@@ -489,7 +439,6 @@ function afficherRecettes(m) {
         <button class="btn" style="background:var(--error);" onclick="supprimerRecette('${m}','${f.id}')">Supprimer</button>
       </div>
     `;
-
     div.appendChild(card);
   });
 }
@@ -497,9 +446,7 @@ function afficherRecettes(m) {
 function supprimerRecette(m, id) {
   const f = (recettes[m] || []).find(r => r.id === id);
   if (!f) return;
-
   if (!confirm(`Supprimer la fiche recette "${f.nom}" ?`)) return;
-
   recettes[m] = recettes[m].filter(r => r.id !== id);
   persistRecettes();
   afficherRecettes(m);
@@ -521,7 +468,6 @@ function getMPList() {
 
 function addRowLabo(data = {}) {
   const tr = document.getElementById("body-labo").insertRow();
-
   tr.innerHTML = `
     <td>
       <select onchange="updateLabo(this); calculerLabo();">
@@ -537,7 +483,6 @@ function addRowLabo(data = {}) {
     <td class="l-res">0.00 €</td>
     <td><button style="background:none;border:none;" onclick="this.closest('tr').remove(); calculerLabo()">❌</button></td>
   `;
-
   updateLabo(tr.cells[0].firstElementChild, data.mpId || "", data.nom || "");
 }
 
@@ -545,56 +490,34 @@ function updateLabo(sel, selectedId = "", selectedName = "") {
   const filtre = sel.value;
   const opt = sel.closest("tr").querySelector(".l-sel");
   const mpList = getMPList();
-
   let html = `<option value="" data-id="" data-name="">--Choisir--</option>`;
-
   mpList.forEach(mp => {
     const metiers = mp.m || [];
-
     if (filtre === "ALL" || metiers.includes(filtre)) {
-      const isSelected = selectedId
-        ? mp.id === selectedId
-        : mp.n === selectedName;
-
-      html += `
-        <option
-          value="${escapeHTML(mp.px || 0)}"
-          data-id="${escapeHTML(mp.id)}"
-          data-name="${escapeHTML(mp.n)}"
-          ${isSelected ? "selected" : ""}
-        >
-          ${escapeHTML(mp.n)}
-        </option>
-      `;
+      const isSelected = selectedId ? mp.id === selectedId : mp.n === selectedName;
+      html += `<option value="${escapeHTML(mp.px || 0)}" data-id="${escapeHTML(mp.id)}" data-name="${escapeHTML(mp.n)}" ${isSelected ? "selected" : ""}>${escapeHTML(mp.n)}</option>`;
     }
   });
-
   opt.innerHTML = html;
 }
 
 function ouvrirRecette(m, id) {
   const f = (recettes[m] || []).find(r => r.id === id);
   if (!f) return;
-
   f.hasUpdate = false;
   document.getElementById("alert-" + f.id)?.classList.remove("visible");
   persistRecettes();
-
   showTab("labo");
-
   document.getElementById("nom-produit").value = f.nom;
   document.getElementById("recette-id").value = f.id;
   document.getElementById("recette-metier").value = m;
-
   const body = document.getElementById("body-labo");
   body.innerHTML = "";
-
   (f.ingredients || []).forEach(i => {
     addRowLabo(i);
     const tr = document.querySelector("#body-labo tr:last-child");
     if (f.lastVaries && f.lastVaries.includes(i.nom)) tr.classList.add("varie");
   });
-
   if (f.param) {
     document.getElementById("coef-val").value = f.param.coef ?? 3.5;
     document.getElementById("marge-val").value = f.param.marge ?? 70;
@@ -605,9 +528,7 @@ function ouvrirRecette(m, id) {
     document.getElementById("poids-crue").value = f.param.poidsCru ?? "";
     document.getElementById("poids-cuit").value = f.param.poidsCuit ?? "";
   }
-
   calculerLabo();
-
   f.lastVaries = [];
   persistRecettes();
 }
@@ -615,61 +536,33 @@ function ouvrirRecette(m, id) {
 function getCalculLabo() {
   let totalMP_HT = 0;
   let poidsTotalCru = 0;
-
   document.querySelectorAll("#body-labo tr").forEach(tr => {
     const prixKg = parseFloat(tr.querySelector(".l-sel").value) || 0;
     const qte = parseFloat(tr.querySelector(".l-qte").value) || 0;
     const cout = (qte / 1000) * prixKg;
-
     tr.querySelector(".l-res").textContent = cout.toFixed(2) + " €";
-
     totalMP_HT += cout;
     poidsTotalCru += qte;
   });
-
   const poidsCru = parseFloat(document.getElementById("poids-crue").value) || poidsTotalCru || 0;
   const poidsCuit = parseFloat(document.getElementById("poids-cuit").value) || poidsCru || 0;
   const coef = parseFloat(document.getElementById("coef-val").value) || 1;
   const marge = parseFloat(document.getElementById("marge-val").value) || 0;
   const tvaPct = parseFloat(document.getElementById("tva-val").value) || 0;
   const tva = 1 + tvaPct / 100;
-  const emb = document.getElementById("check-emb").checked
-    ? parseFloat(document.getElementById("prix-emb-ht").value) || 0
-    : 0;
+  const emb = document.getElementById("check-emb").checked ? parseFloat(document.getElementById("prix-emb-ht").value) || 0 : 0;
   const perte = parseFloat(document.getElementById("taux-perte").value) || 0;
-
   let coutBaseHT = totalMP_HT;
-
-  if (poidsTotalCru > 0 && poidsCru > 0) {
-    coutBaseHT = (totalMP_HT / poidsTotalCru) * poidsCru;
-  }
-
+  if (poidsTotalCru > 0 && poidsCru > 0) coutBaseHT = (totalMP_HT / poidsTotalCru) * poidsCru;
   const facteurPerte = perte > 0 ? 1 + perte / 100 : 1;
-  const coutAvecPerteHT = coutBaseHT * facteurPerte;
-
   const prixBrutCoefHT = coutBaseHT * coef;
   const prixBrutMargeHT = marge >= 100 ? 0 : coutBaseHT / (1 - marge / 100);
-
   const prixMagCoefHT = (coutBaseHT * facteurPerte * coef) + emb;
   const prixMagMargeHT = marge >= 100 ? 0 : (coutBaseHT * facteurPerte / (1 - marge / 100)) + emb;
-
   return {
-    totalMP_HT,
-    poidsTotalCru,
-    poidsCru,
-    poidsCuit,
-    coef,
-    marge,
-    tvaPct,
-    tva,
-    emb,
-    perte,
-    coutBaseHT,
-    coutAvecPerteHT,
-    prixBrutCoefHT,
-    prixBrutMargeHT,
-    prixMagCoefHT,
-    prixMagMargeHT,
+    totalMP_HT, poidsTotalCru, poidsCru, poidsCuit, coef, marge, tvaPct, tva, emb, perte,
+    coutBaseHT, coutAvecPerteHT: coutBaseHT * facteurPerte,
+    prixBrutCoefHT, prixBrutMargeHT, prixMagCoefHT, prixMagMargeHT,
     prixMagCoefTTC: prixMagCoefHT * tva,
     prixMagMargeTTC: prixMagMargeHT * tva
   };
@@ -677,16 +570,12 @@ function getCalculLabo() {
 
 function calculerLabo() {
   const c = getCalculLabo();
-
   document.getElementById("brut-c-ht").textContent = c.prixBrutCoefHT.toFixed(2) + " € HT";
   document.getElementById("brut-c-ttc").textContent = (c.prixBrutCoefHT * c.tva).toFixed(2) + " € TTC";
-
   document.getElementById("brut-m-ht").textContent = c.prixBrutMargeHT.toFixed(2) + " € HT";
   document.getElementById("brut-m-ttc").textContent = (c.prixBrutMargeHT * c.tva).toFixed(2) + " € TTC";
-
   document.getElementById("mag-c-ht").textContent = "HT : " + c.prixMagCoefHT.toFixed(2) + " €";
   document.getElementById("mag-c-ttc").textContent = c.prixMagCoefTTC.toFixed(2) + " € TTC";
-
   document.getElementById("mag-m-ht").textContent = "HT : " + c.prixMagMargeHT.toFixed(2) + " €";
   document.getElementById("mag-m-ttc").textContent = c.prixMagMargeTTC.toFixed(2) + " € TTC";
 }
@@ -694,19 +583,12 @@ function calculerLabo() {
 function enregistrerFiche() {
   const nom = document.getElementById("nom-produit").value.trim();
   if (!nom) return alert("Nom requis.");
-
   const id = document.getElementById("recette-id").value;
   const metier = document.getElementById("recette-metier").value;
-
-  if (!id || !metier) {
-    return alert("Fiche introuvable. Ouvrez une fiche recette avant d'enregistrer.");
-  }
-
+  if (!id || !metier) return alert("Fiche introuvable. Ouvrez une fiche recette avant d'enregistrer.");
   const fiche = (recettes[metier] || []).find(x => x.id === id);
   if (!fiche) return alert("Fiche introuvable.");
-
   const ingredients = [];
-
   document.querySelectorAll("#body-labo tr").forEach(tr => {
     const sel = tr.querySelector(".l-sel");
     const option = sel.selectedOptions[0];
@@ -714,86 +596,58 @@ function enregistrerFiche() {
     const prix = parseFloat(sel.value) || 0;
     const mpId = option?.dataset.id || "";
     const ingredientNom = option?.dataset.name || option?.textContent?.trim() || "";
-
-    if (ingredientNom && qte > 0) {
-      ingredients.push({
-        mpId,
-        nom: ingredientNom,
-        prix,
-        qte,
-        metier: tr.cells[0].querySelector("select").value
-      });
-    }
+    if (ingredientNom && qte > 0) ingredients.push({ mpId, nom: ingredientNom, prix, qte, metier: tr.cells[0].querySelector("select").value });
   });
-
   const c = getCalculLabo();
-
   fiche.nom = nom;
   fiche.ingredients = ingredients;
   fiche.param = {
-    coef: c.coef,
-    marge: c.marge,
-    tva: c.tvaPct,
+    coef: c.coef, marge: c.marge, tva: c.tvaPct,
     embActif: document.getElementById("check-emb").checked,
-    embPrix: c.emb,
-    perte: c.perte,
-    poidsCru: c.poidsCru,
-    poidsCuit: c.poidsCuit
+    embPrix: c.emb, perte: c.perte, poidsCru: c.poidsCru, poidsCuit: c.poidsCuit
   };
-
   fiche.prixTotalHT = c.totalMP_HT.toFixed(2);
   fiche.prixFinalTTC = ((c.prixMagCoefTTC + c.prixMagMargeTTC) / 2).toFixed(2);
   fiche.updatedAt = new Date().toISOString();
   fiche.autoUpdate = true;
   fiche.hasUpdate = false;
-
   persistRecettes();
   actualiserToutesRecettes();
   saveAll();
-
   alert("✅ Fiche enregistrée avec les matières premières.");
 }
 
 function majAutomatiqueRecettes() {
   const mp = getMPList();
   let maj = 0;
-
   Object.entries(recettes).forEach(([m, list]) => {
     list.forEach(f => {
       if (!f.autoUpdate || !Array.isArray(f.ingredients)) return;
-
       let total = 0;
       let changed = false;
-
       f.ingredients.forEach(i => {
         const ref = mp.find(x => x.id === i.mpId || x.n === i.nom);
-
         if (ref) {
           const nv = parseFloat(ref.px) || 0;
-
           if (Number(i.prix) !== nv) {
             f.lastVaries = f.lastVaries || [];
             if (!f.lastVaries.includes(i.nom)) f.lastVaries.push(i.nom);
             i.prix = nv;
             changed = true;
           }
-
           total += (Number(i.qte) / 1000) * nv;
         }
       });
-
       if (changed) {
         f.prixTotalHT = total.toFixed(2);
         f.hasUpdate = true;
         f.updatedAt = new Date().toISOString();
         maj++;
-
         const alert = document.getElementById("alert-" + f.id);
         if (alert) alert.classList.add("visible");
       }
     });
   });
-
   if (maj > 0) {
     persistRecettes();
     actualiserToutesRecettes();
@@ -804,7 +658,6 @@ function majAutomatiqueRecettes() {
 
 function clearHist() {
   if (!confirm("Vider l'historique des prix ?")) return;
-
   priceHistory = [];
   localStorage.setItem("price_hist_v31", JSON.stringify(priceHistory));
   updateHistUI();
@@ -813,15 +666,8 @@ function clearHist() {
 
 function updateHistUI() {
   const list = document.getElementById("hist-list");
-
-  if (!priceHistory.length) {
-    list.innerHTML = "<p>Aucune variation enregistrée.</p>";
-    return;
-  }
-
-  list.innerHTML = priceHistory
-    .slice()
-    .sort((a, b) => new Date(b.iso) - new Date(a.iso))
+  if (!priceHistory.length) { list.innerHTML = "<p>Aucune variation enregistrée.</p>"; return; }
+  list.innerHTML = priceHistory.slice().sort((a, b) => new Date(b.iso) - new Date(a.iso))
     .map(h => `<div>${escapeHTML(h.date)} | ${escapeHTML(h.item)} : ${Number(h.old).toFixed(2)} € → ${Number(h.new).toFixed(2)} €</div>`)
     .join("");
 }
@@ -829,46 +675,30 @@ function updateHistUI() {
 function exportJPG() {
   const zone = document.getElementById("capture-zone");
   if (!zone) return alert("Aucune recette ouverte.");
-
   if (typeof html2canvas === "undefined") {
     alert("La librairie html2canvas n'est pas chargée. Vérifiez votre connexion internet.");
     return;
   }
-
-  html2canvas(zone, {
-    scale: 2,
-    backgroundColor: "#ffffff"
-  }).then(canvas => {
+  html2canvas(zone, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
     const nom = document.getElementById("nom-produit").value.trim() || "fiche";
     const a = document.createElement("a");
     a.download = `${nom}.jpg`;
     a.href = canvas.toDataURL("image/jpeg", 0.95);
     a.click();
-  }).catch(err => {
-    console.error(err);
-    alert("Erreur lors de la sauvegarde JPEG.");
-  });
+  }).catch(err => { console.error(err); alert("Erreur lors de la sauvegarde JPEG."); });
 }
 
 async function fetchFromGist(filename) {
   if (!GITHUB_TOKEN) return defaultDataFor(filename);
-
   try {
-    const response = await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`, {
+    const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
       method: "GET",
-      headers: {
-        "Authorization": `token ${GITHUB_TOKEN}`,
-        "Accept": "application/vnd.github+json"
-      }
+      headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Accept": "application/vnd.github+json" }
     });
-
     if (!response.ok) throw new Error("Erreur GitHub GET " + response.status);
-
     const gist = await response.json();
     const content = gist.files?.[filename]?.content;
-
     if (!content) return defaultDataFor(filename);
-
     return JSON.parse(content);
   } catch (error) {
     console.error(error);
@@ -885,19 +715,13 @@ function defaultDataFor(filename) {
 }
 
 async function saveAll() {
-  if (!GITHUB_TOKEN) {
-    showSyncStatus("Token manquant", "error");
-    return;
-  }
-
+  if (!GITHUB_TOKEN) { showSyncStatus("Token manquant", "error"); return; }
   try {
     showSyncStatus("Synchronisation...", "loading");
-
     const mp = localStorage.getItem("mp_data_v31") || "[]";
     const rec = localStorage.getItem("recettes_data_v31") || "{}";
     const hist = localStorage.getItem("price_hist_v31") || "[]";
-
-    const response = await fetch(`[api.github.com](https://api.github.com/gists/${GIST_ID})`, {
+    const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
       method: "PATCH",
       headers: {
         "Authorization": `token ${GITHUB_TOKEN}`,
@@ -912,13 +736,10 @@ async function saveAll() {
         }
       })
     });
-
     if (!response.ok) throw new Error("Erreur GitHub PATCH " + response.status);
-
     lastSyncHash = genHash(JSON.parse(mp));
     lastSyncHashRecettes = genHash(JSON.parse(rec));
     lastSyncHashHistory = genHash(JSON.parse(hist));
-
     showSyncStatus("Synchronisé", "success");
   } catch (error) {
     console.error(error);
@@ -928,70 +749,48 @@ async function saveAll() {
 
 function mergeData(local, remote) {
   const map = new Map();
-
-  remote.forEach(item => {
-    const key = item.id || `${item.n}_${item.f}`;
-    map.set(key, item);
-  });
-
+  remote.forEach(item => { const key = item.id || `${item.n}_${item.f}`; map.set(key, item); });
   local.forEach(item => {
     const key = item.id || `${item.n}_${item.f}`;
     const existing = map.get(key);
-
-    if (!existing || String(item.updatedAt || "") > String(existing.updatedAt || "")) {
-      map.set(key, item);
-    }
+    if (!existing || String(item.updatedAt || "") > String(existing.updatedAt || "")) map.set(key, item);
   });
-
   return Array.from(map.values());
 }
 
 function mergeRecettes(local, remote) {
   const merged = {};
-
   ["B", "P", "V", "GV"].forEach(m => {
     const loc = local?.[m] || [];
     const rem = remote?.[m] || [];
     const map = new Map();
-
     rem.forEach(f => map.set(f.id, f));
-
     loc.forEach(f => {
       const existing = map.get(f.id);
-
-      if (!existing || String(f.updatedAt || "") > String(existing.updatedAt || "")) {
-        map.set(f.id, f);
-      }
+      if (!existing || String(f.updatedAt || "") > String(existing.updatedAt || "")) map.set(f.id, f);
     });
-
     merged[m] = Array.from(map.values());
   });
-
   return merged;
 }
 
 function mergeHistory(local, remote) {
   const map = new Map();
-
   [...remote, ...local].forEach(h => {
     const key = h.id || `${h.iso}_${h.item}_${h.old}_${h.new}`;
     map.set(key, h);
   });
-
   return Array.from(map.values());
 }
 
 async function checkUpdates() {
   if (!GITHUB_TOKEN || isSyncing) return;
-
   isSyncing = true;
-
   try {
     const distMP = await fetchFromGist(GIST_FILENAME);
     const locMP = JSON.parse(localStorage.getItem("mp_data_v31") || "[]");
     const mergedMP = mergeData(locMP, distMP);
     const h = genHash(mergedMP);
-
     if (h !== lastSyncHash) {
       setMPTable(mergedMP);
       localStorage.setItem("mp_data_v31", JSON.stringify(mergedMP));
@@ -999,24 +798,20 @@ async function checkUpdates() {
       showSyncStatus("MAJ MP", "info");
       majAutomatiqueRecettes();
     }
-
     const distRec = await fetchFromGist(GIST_RECETTES_FILENAME);
     const locRec = JSON.parse(localStorage.getItem("recettes_data_v31") || "{}");
     recettes = mergeRecettes(locRec, distRec);
     const hR = genHash(recettes);
-
     if (hR !== lastSyncHashRecettes) {
       persistRecettes();
       actualiserToutesRecettes();
       lastSyncHashRecettes = hR;
       showSyncStatus("MAJ Recettes", "info");
     }
-
     const distHist = await fetchFromGist(GIST_HISTORY_FILENAME);
     const locHist = JSON.parse(localStorage.getItem("price_hist_v31") || "[]");
     priceHistory = mergeHistory(locHist, distHist);
     const hH = genHash(priceHistory);
-
     if (hH !== lastSyncHashHistory) {
       localStorage.setItem("price_hist_v31", JSON.stringify(priceHistory));
       lastSyncHashHistory = hH;
@@ -1030,55 +825,38 @@ async function checkUpdates() {
 
 async function syncGist() {
   if (!GITHUB_TOKEN) await initToken();
-
   GITHUB_TOKEN = document.getElementById("gh-token").value.trim();
-
-  if (!GITHUB_TOKEN) {
-    alert("Token GitHub requis.");
-    return;
-  }
-
+  if (!GITHUB_TOKEN) { alert("Token GitHub requis."); return; }
   localStorage.setItem("gh_token", GITHUB_TOKEN);
-
   await checkUpdates();
   await saveAll();
 }
 
 async function initSync() {
   showSyncStatus("Connexion...", "loading");
-
   await initToken();
   normaliserRecettes();
-
   const distMP = await fetchFromGist(GIST_FILENAME);
   const distRec = await fetchFromGist(GIST_RECETTES_FILENAME);
   const distHist = await fetchFromGist(GIST_HISTORY_FILENAME);
-
   const locMP = JSON.parse(localStorage.getItem("mp_data_v31") || "[]");
   const locRec = JSON.parse(localStorage.getItem("recettes_data_v31") || "{}");
   const locHist = JSON.parse(localStorage.getItem("price_hist_v31") || "[]");
-
   const mergedMP = mergeData(locMP, distMP);
   recettes = mergeRecettes(locRec, distRec);
   priceHistory = mergeHistory(locHist, distHist);
-
   setMPTable(mergedMP);
   localStorage.setItem("mp_data_v31", JSON.stringify(mergedMP));
   persistRecettes();
   localStorage.setItem("price_hist_v31", JSON.stringify(priceHistory));
-
   lastSyncHash = genHash(mergedMP);
   lastSyncHashRecettes = genHash(recettes);
   lastSyncHashHistory = genHash(priceHistory);
-
   actualiserToutesRecettes();
   updateHistUI();
   majAutomatiqueRecettes();
-
   showSyncStatus("En ligne", "success");
-
   await saveAll();
-
   setInterval(checkUpdates, SYNC_INTERVAL);
 }
 
@@ -1089,56 +867,29 @@ function exportLocal() {
     historique: JSON.parse(localStorage.getItem("price_hist_v31") || "[]"),
     date: new Date().toISOString()
   };
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json"
-  });
-
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "boulangerie-sauvegarde.json";
   a.click();
-
   URL.revokeObjectURL(a.href);
 }
 
 function importLocal() {
   const input = document.getElementById("import-local");
   const file = input.files[0];
-
   if (!file) return;
-
   const reader = new FileReader();
-
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-
-      if (Array.isArray(data.mp)) {
-        localStorage.setItem("mp_data_v31", JSON.stringify(data.mp));
-        setMPTable(data.mp);
-      }
-
-      if (data.recettes) {
-        recettes = data.recettes;
-        persistRecettes();
-        actualiserToutesRecettes();
-      }
-
-      if (Array.isArray(data.historique)) {
-        priceHistory = data.historique;
-        localStorage.setItem("price_hist_v31", JSON.stringify(priceHistory));
-        updateHistUI();
-      }
-
+      if (Array.isArray(data.mp)) { localStorage.setItem("mp_data_v31", JSON.stringify(data.mp)); setMPTable(data.mp); }
+      if (data.recettes) { recettes = data.recettes; persistRecettes(); actualiserToutesRecettes(); }
+      if (Array.isArray(data.historique)) { priceHistory = data.historique; localStorage.setItem("price_hist_v31", JSON.stringify(priceHistory)); updateHistUI(); }
       saveAll();
       alert("Import terminé.");
-    } catch (error) {
-      console.error(error);
-      alert("Fichier invalide.");
-    }
+    } catch (error) { console.error(error); alert("Fichier invalide."); }
   };
-
   reader.readAsText(file);
 }
 
