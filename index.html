@@ -403,7 +403,7 @@ function saveMPToLocal(sync = false) {
 let saveTimer = null;
 function debounceSaveAll() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveAll(), 800);
+  saveTimer = setTimeout(() => saveAll(), 150000);
 }
 
 function nouvelleRecette(m) {
