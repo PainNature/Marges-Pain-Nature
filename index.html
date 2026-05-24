@@ -441,12 +441,33 @@ function afficherRecettes(m) {
       <div class="card-actions">
         <button class="btn" style="background:var(--primary);" onclick="ouvrirRecette('${m}','${f.id}')">Ouvrir</button>
         <button class="btn" style="background:var(--error);" onclick="supprimerRecette('${m}','${f.id}')">Supprimer</button>
+<button class="btn" style="background:#8e44ad;" onclick="dupliquerRecette('${m}','${f.id}')">Dupliquer</button>
       </div>
     `;
     div.appendChild(card);
   });
 }
+  
+function dupliquerRecette(m, id) {
+  const f = (recettes[m] || []).find(r => r.id === id);
+  if (!f) return;
 
+  const nom = prompt("Nom de la copie :", f.nom + " (copie)");
+  if (!nom) return;
+
+  const copie = JSON.parse(JSON.stringify(f));
+  copie.id = crypto.randomUUID();
+  copie.nom = nom;
+  copie.updatedAt = new Date().toISOString();
+  copie.hasUpdate = false;
+  copie.lastVaries = [];
+
+  recettes[m].push(copie);
+  persistRecettes();
+  afficherRecettes(m);
+  saveAll();
+}
+  
 function supprimerRecette(m, id) {
   const f = (recettes[m] || []).find(r => r.id === id);
   if (!f) return;
